@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Insightly · AI file insights</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F8FAFC;--sf:#FFFFFF;--ink:#0F172A;--mu:#64748B;--ln:#E2E8F0;--pri:#4F46E5;--pri2:#4338CA;--cy:#06B6D4;--soft:#EEF2FF;--cysoft:#E0F7FB;--er:#B42318;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0B0F19;--sf:#1E293B;--ink:#E2E8F0;--mu:#94A3B8;--ln:#334155;--soft:rgba(79,70,229,.2);--cysoft:rgba(6,182,212,.16);--er:#FF8A80}}
+:root[data-theme=dark]{--bg:#0B0F19;--sf:#1E293B;--ink:#E2E8F0;--mu:#94A3B8;--ln:#334155;--soft:rgba(79,70,229,.2);--cysoft:rgba(6,182,212,.16);--er:#FF8A80}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.7 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,select,input,.drop,.card{transition:all .3s ease}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px}
+button:focus-visible,input:focus-visible,select:focus-visible,.drop:focus-visible{outline:none;box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--pri)}
+.app{height:100%;display:flex;flex-direction:column}
+.nav{height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--sf);border-bottom:1px solid var(--ln)}
+.logo{font-size:1.25rem;font-weight:800;letter-spacing:-.03em;display:flex;align-items:center;gap:10px}.logo i{width:12px;height:12px;border-radius:4px;background:var(--pri);display:block}
+.navr{display:flex;align-items:center;gap:16px}
+.pbar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--cy);z-index:30;transition:width .5s ease,opacity .4s}
+.btn{background:var(--pri);color:#fff;font-weight:600;padding:10px 20px}.btn:hover{background:var(--pri2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,70,229,.3)}
+.ghost{background:var(--sf);color:var(--ink);border:1px solid var(--ln);padding:9px 16px;font-weight:500;font-size:.9rem}.ghost:hover{border-color:var(--pri);color:var(--pri);background:var(--soft)}
+.sw{width:56px;height:30px;border-radius:15px;background:var(--ln);position:relative;padding:0}.sw:hover{background:var(--mu)}
+.sw .kn{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--sf);display:grid;place-items:center;font-size:.8rem;transition:all .3s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sw[aria-checked=true]{background:var(--pri)}.sw[aria-checked=true] .kn{left:29px}
+.hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;overflow-y:auto}
+.hero h1{font-size:clamp(2rem,5vw,3rem);line-height:1.1;letter-spacing:-.035em;font-weight:800;margin:0 0 16px}
+.hero .sub{color:var(--mu);max-width:560px;margin:0 0 40px;font-size:1.05rem}
+.drop{width:min(680px,100%);padding:72px 32px;border:2px dotted var(--ln);border-radius:24px;background:var(--sf);cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--pri);box-shadow:0 0 0 4px rgba(79,70,229,.1),0 12px 40px rgba(79,70,229,.14)}
+.drop .ic{width:64px;height:64px;border-radius:18px;background:var(--soft);display:grid;place-items:center;font-size:1.8rem;margin:0 auto 24px}
+.drop b{display:block;font-size:1.2rem;letter-spacing:-.02em;margin-bottom:6px}.drop span{color:var(--mu);font-size:.95rem}
+.fmts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:24px}.fmts em{font-style:normal;background:var(--bg);border:1px solid var(--ln);border-radius:20px;padding:2px 14px;font-size:.8rem;color:var(--mu);font-weight:500}
+.hero .note{color:var(--mu);font-size:.85rem;margin-top:24px;max-width:520px}.hero .ghost{margin-top:24px}
+.work{flex:1;min-height:0;display:grid;grid-template-columns:2fr 3fr}
+.left,.right{overflow-y:auto;padding:32px;min-height:0}.left{border-right:1px solid var(--ln)}.right{padding:32px 48px 80px}
+.stack{display:flex;flex-direction:column;gap:24px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:24px}.card:hover{box-shadow:0 8px 28px rgba(15,23,42,.06)}
+h2{font-size:1.15rem;font-weight:700;letter-spacing:-.02em;margin:0 0 16px;display:flex;align-items:center;gap:10px}h3{font-size:.95rem;font-weight:600;letter-spacing:-.01em;margin:0 0 16px}
+p{margin:0}.body{font-size:1rem;line-height:1.8}.sm{font-size:.85rem;color:var(--mu)}
+.badge{font-size:.72rem;font-weight:600;background:var(--cysoft);color:var(--cy);border-radius:20px;padding:2px 10px;letter-spacing:.01em}
+.file{display:flex;gap:16px;align-items:center;margin-bottom:20px}.file .ic{width:52px;height:52px;border-radius:14px;background:var(--soft);display:grid;place-items:center;font-size:1.5rem;flex:none}
+.file b{font-size:1.05rem;letter-spacing:-.02em;overflow-wrap:anywhere;line-height:1.35}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid var(--ln);font-size:.9rem}.kv span:first-child{color:var(--mu)}.kv span:last-child{font-weight:600;text-align:right}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chips span{background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:3px 10px;font-size:.82rem}.chips span:hover{border-color:var(--pri);background:var(--soft)}.chips small{color:var(--mu);margin-right:6px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.head h1{font-size:1.6rem;letter-spacing:-.03em;font-weight:800;margin:0}.btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px}
+.mt{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:20px}.mt:hover{border-color:var(--pri);transform:translateY(-2px)}.mt small{display:block;color:var(--mu);font-size:.78rem;font-weight:500;margin-bottom:4px}.mt b{font-size:1.5rem;letter-spacing:-.03em;line-height:1.25;display:block;overflow-wrap:anywhere}.mt b.s{font-size:.95rem}
+.items{display:flex;flex-direction:column;gap:16px}.it{display:flex;gap:16px;align-items:flex-start;padding:16px;border:1px solid var(--ln);border-radius:12px}.it:hover{border-color:var(--pri);background:var(--soft)}
+.it .n{width:28px;height:28px;border-radius:8px;background:var(--soft);color:var(--pri);display:grid;place-items:center;font-weight:700;font-size:.85rem;flex:none}.it b{display:block;margin-bottom:2px;letter-spacing:-.01em}.it span{color:var(--mu);font-size:.95rem;line-height:1.65}
+.act{display:flex;gap:14px;align-items:flex-start;padding:4px 0}.act i{width:20px;height:20px;border:2px solid var(--cy);border-radius:6px;flex:none;margin-top:3px}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px}.ch{height:280px;position:relative}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.85rem}th,td{padding:10px 14px;border-bottom:1px solid var(--ln);text-align:left;white-space:nowrap}th{color:var(--mu);font-weight:600;font-size:.78rem}tr:hover td{background:var(--bg)}
+.exc{font-size:.9rem;line-height:1.8;color:var(--mu);max-height:260px;overflow:hidden;white-space:pre-wrap;overflow-wrap:anywhere;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+.msgs{display:flex;flex-direction:column;gap:16px;margin-bottom:20px}.q{align-self:flex-end;background:var(--pri);color:#fff;border-radius:16px 16px 4px 16px;padding:10px 16px;max-width:85%}.a{background:var(--bg);border-radius:16px 16px 16px 4px;padding:14px 18px;white-space:pre-wrap;overflow-wrap:anywhere}
+.chat form{display:flex;gap:12px}input,select{padding:12px 16px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:.95rem}.chat input{flex:1}input:focus,select:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(79,70,229,.15)}
+.sug{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}.sug button{background:var(--soft);color:var(--pri);font-size:.85rem;padding:6px 14px;font-weight:500}.sug button:hover{background:var(--pri);color:#fff}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:12px 20px;display:flex;gap:12px;align-items:center;box-shadow:0 12px 40px rgba(15,23,42,.18);z-index:40;max-width:92vw}
+.toast.er{border-color:var(--er);color:var(--er)}.spin{width:18px;height:18px;border:3px solid var(--ln);border-top-color:var(--cy);border-radius:50%;animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.hist{position:fixed;top:64px;right:0;bottom:0;width:min(360px,100%);background:var(--sf);border-left:1px solid var(--ln);padding:24px;transform:translateX(105%);transition:transform .3s ease;z-index:20;overflow-y:auto;box-shadow:-12px 0 40px rgba(15,23,42,.08)}.hist.open{transform:none}
+.hi{display:block;width:100%;text-align:left;background:none;padding:14px;border:1px solid var(--ln);border-radius:12px;margin-bottom:12px;color:var(--ink)}.hi:hover,.hi.on{border-color:var(--pri);background:var(--soft)}.hi b{display:block;font-size:.95rem;overflow-wrap:anywhere}.hi small{color:var(--mu)}
+.sbar{display:flex;align-items:center;gap:10px;width:min(520px,38vw);background:var(--bg);border:1px solid var(--ln);color:var(--mu);padding:9px 16px;border-radius:12px;font-size:.92rem;text-align:left}
+.sbar:hover{border-color:var(--pri);box-shadow:0 0 0 4px rgba(79,70,229,.1);color:var(--ink)}.sbar .t{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.sbar kbd{border:1px solid var(--ln);border-radius:6px;padding:0 8px;font:inherit;font-size:.75rem}
+.ai{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);animation:aiin .3s ease}@keyframes aiin{from{opacity:0;transform:translateY(16px) scale(.99)}}
+.aih{height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 32px;background:var(--sf);border-bottom:1px solid var(--ln)}.aih b{font-size:1.1rem;letter-spacing:-.02em}.aih span{color:var(--mu);font-size:.9rem}
+.aifeed{flex:1;overflow-y:auto;padding:32px 24px}.aiw{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+.aic{flex:none;background:var(--sf);border-top:1px solid var(--ln);padding:16px 24px calc(16px + env(safe-area-inset-bottom,0px))}.aic .in{max-width:860px;margin:0 auto;display:flex;gap:12px}.aic input{flex:1;padding:14px 20px;border-radius:14px;font-size:1rem}
+.empty-s{text-align:center;padding:56px 0 8px}.empty-s h2{justify-content:center;font-size:1.7rem;letter-spacing:-.03em;margin-bottom:8px}.empty-s .sug{justify-content:center;margin-top:28px}
+.acard{background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:20px}.think{display:flex;gap:12px;align-items:center;color:var(--mu)}
+.steps{font-size:.8rem;color:var(--mu);display:flex;flex-direction:column;gap:6px;font-family:ui-monospace,Menlo,monospace;overflow-wrap:anywhere}.steps:empty{display:none}details.st summary{cursor:pointer;color:var(--mu);font-size:.85rem;margin-bottom:10px}
+.res{border:1px solid var(--ln);border-radius:12px;overflow:hidden}.res .rh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;background:var(--bg);flex-wrap:wrap}.res .rh b{font-size:.9rem}.res .tw{max-height:420px;overflow:auto}
+@media(max-width:900px){.sbar{width:auto;flex:1;margin:0 12px}.sbar kbd{display:none}.aih,.aic{padding-left:16px;padding-right:16px}.aifeed{padding:20px 16px}}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}.dk{position:relative}.dk .dx{position:absolute;top:12px;right:12px;font-size:.9rem}.dk h3{padding-right:28px}
+.dk.kpi{display:flex;flex-direction:column;justify-content:center}.dk.kpi small{color:var(--mu);font-size:.8rem;font-weight:500}.dk.kpi b{font-size:2rem;letter-spacing:-.03em;line-height:1.2;overflow-wrap:anywhere}
+.dwrap{max-width:1100px;margin:0 auto;padding:8px;background:var(--bg)}.dt{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;border:0;background:transparent;padding:0 0 20px;width:100%;color:var(--ink)}.dt:focus{box-shadow:none;border:0}
+.xm{position:absolute;right:0;top:calc(100% + 8px);background:var(--sf);border:1px solid var(--ln);border-radius:12px;box-shadow:0 12px 36px rgba(15,23,42,.16);padding:6px;min-width:210px;z-index:12;display:flex;flex-direction:column}
+.xi{background:none;color:var(--ink);text-align:left;padding:10px 14px;border-radius:8px;font-size:.9rem}.xi:hover{background:var(--soft);color:var(--pri)}
+@property --a{syntax:"<angle>";initial-value:0deg;inherits:false}
+@keyframes gspin{to{--a:360deg}}@keyframes ghue{to{filter:blur(12px) hue-rotate(360deg)}}
+.sbar{position:relative;isolation:isolate;border:1.5px solid transparent;background:linear-gradient(var(--sf),var(--sf)) padding-box,conic-gradient(from var(--a),#4F46E5,#06B6D4,#8B5CF6,#EC4899,#F59E0B,#4F46E5) border-box;animation:gspin 9s linear infinite}
+.sbar::before,.gw::before{content:"";position:absolute;inset:-4px;z-index:-1;border-radius:18px;background:conic-gradient(from var(--a),#4F46E5,#06B6D4,#8B5CF6,#EC4899,#F59E0B,#4F46E5);filter:blur(12px);opacity:.42;animation:gspin 9s linear infinite,ghue 16s linear infinite;transition:opacity .3s}
+.sbar:hover{border-color:transparent}.sbar:hover::before,.gw:focus-within::before{opacity:.75}
+.gw{flex:1;position:relative;isolation:isolate;border-radius:16px;padding:2px;background:conic-gradient(from var(--a),#4F46E5,#06B6D4,#8B5CF6,#EC4899,#F59E0B,#4F46E5);animation:gspin 9s linear infinite}
+.gw input{flex:none;width:100%;border:0;border-radius:14px;background:var(--sf)}.gw input:focus{box-shadow:none}
+.ans{display:flex;flex-direction:column;gap:14px;font-size:1.02rem;line-height:1.85}.ans p{margin:0}.ans ul,.ans ol{margin:0;padding-left:24px;display:flex;flex-direction:column;gap:8px}
+.acard{padding:28px;gap:24px}.res .tw th{position:sticky;top:0;background:var(--sf);z-index:1}.res tr:nth-child(even) td{background:var(--bg)}.num{text-align:right;font-variant-numeric:tabular-nums}
+.res th,.res td{padding:11px 16px}.res .rh{padding:16px 20px}
+[hidden]{display:none!important}
+@media(max-width:900px){.nav{padding:0 16px}.work{display:block;overflow-y:auto}.left,.right{overflow:visible;padding:20px 16px}.right{padding-bottom:64px}.left{border-right:0;border-bottom:1px solid var(--ln)}.cgrid{grid-template-columns:1fr}.drop{padding:48px 20px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style></head><body><div class="app">
+<div class="pbar" id="pbar"></div>
+<header class="nav"><div class="logo"><i></i>Insightly</div>
+  <button class="sbar" id="sbar" hidden aria-label="Ask AI about your file"><span>🔍</span><span class="t">Ask AI anything about your file…</span><kbd>/</kbd></button>
+  <div class="navr"><button class="ghost" id="hb" aria-expanded="false">History</button>
+  <button class="sw" id="sw" role="switch" aria-checked="false" aria-label="Dark mode"><span class="kn" id="kn">☀️</span></button></div></header>
+<section class="hero" id="hero"><h1>Understand any file<br>in seconds</h1>
+  <p class="sub">Upload a spreadsheet, document, scan or data file. Insightly writes the summary, highlights what matters and draws the charts.</p>
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a file to analyse"><div class="ic">📂</div><b>Drag and drop a file here</b><span>or click to browse your device</span>
+    <div class="fmts"><em>CSV</em><em>Excel</em><em>JSON</em><em>TXT</em><em>PDF</em><em>Images</em></div></div>
+  <button class="ghost" id="demo">Try a sample dataset</button>
+  <p class="note">Files are read inside your browser and are never stored. For AI analysis, a statistical summary and a limited sample of rows (or a text excerpt) may be sent to the AI provider. Files are not stored by this website.</p>
+  <p class="sm" id="warn" hidden style="color:var(--er);margin-top:16px">The AI feature isn’t available in this view. Open the page while signed in to claude.ai.</p></section>
+<div class="work" id="work" hidden><aside class="left" id="left"></aside><section class="right" id="right"></section></div>
+<aside class="hist" id="hist" aria-label="History"></aside>
+<div class="ai" id="dash" hidden role="dialog" aria-modal="true" aria-label="Dashboard"><header class="aih"><div><b>▦ Dashboard</b></div><div class="btns"><button class="ghost" id="dauto" type="button">Auto-build</button><button class="ghost" id="dpng" type="button">PNG</button><button class="ghost" id="dpdf" type="button">PDF</button><button class="ghost" id="dx" type="button">Close ✕</button></div></header><div class="aifeed"><div class="dwrap" id="dashwrap"><input class="dt" id="dt" aria-label="Dashboard title" maxlength="80"><div class="dgrid" id="dgrid"></div></div></div></div>
+<div class="ai" id="ai" hidden role="dialog" aria-modal="true" aria-label="Ask AI"><header class="aih"><div><b>✦ Ask AI</b><span id="aif"></span></div><div class="btns"><button class="ghost" id="aadd" type="button">＋ Add file</button><button class="ghost" id="aix" type="button">Close ✕</button></div></header>
+<div class="aifeed" id="aifeed"></div>
+<form class="aic" id="aform"><div class="in"><div class="gw"><input id="aq" placeholder="Ask anything: show the last 5 rows, filter, sort, count, chart…" autocomplete="off" aria-label="Ask the AI"></div><button class="btn" id="asend">Ask</button><button class="ghost" id="astop" type="button" hidden>Stop</button></div></form></div>
+<input type="file" id="fi" accept=".csv,.tsv,.xlsx,.xls,.json,.txt,.pdf,.png,.jpg,.jpeg,.webp" hidden>
+<input type="file" id="fi2" accept=".csv,.tsv,.xlsx,.xls,.json,.png,.jpg,.jpeg,.webp" hidden>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.6/jstat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e;};
+const PAL=["#4F46E5","#06B6D4","#8B5CF6","#F59E0B","#10B981","#EC4899","#64748B","#F97316"],root=document.documentElement;
+let S=null,charts=[],token=0,sessions=[],theme=null,tt;
+async function geminiRequest(prompt,dataContext="",jsonMode=false){
+  const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt,dataContext,jsonMode})});
+  let body={};try{body=await res.json();}catch{}
+  if(!res.ok)throw new Error(body.error||("AI request failed (HTTP "+res.status+")"));
+  if(typeof body.answer!=="string")throw new Error("Unexpected response from the AI server.");
+  return body.answer;
+}
+const sample={limits:async()=>({tools:{maxCount:0}}),json:async(prompt)=>{
+  const raw=await geminiRequest(typeof prompt==="string"?prompt:String(prompt));
+  try{return JSON.parse(raw.replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,""));}catch(e){throw Object.assign(new Error("Gemini did not return valid JSON. Please retry."),{code:"invalid_json"});}
+}};
+const dl={save:async({filename,data})=>{const blob=data instanceof Blob?data:new Blob([data],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}};
+$("#warn").hidden=true;
+// ---- theme, history, view ----
+const isDark=()=>theme?theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+function paintSwitch(){const d=isDark();$("#sw").setAttribute("aria-checked",d);$("#kn").textContent=d?"🌙":"☀️";}
+$("#sw").onclick=()=>{theme=isDark()?"light":"dark";root.dataset.theme=theme;paintSwitch();if(S&&!$("#work").hidden)render();if(!$("#ai").hidden)paintAI();if(!$("#dash").hidden)paintDash();};paintSwitch();
+matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>{paintSwitch();});
+$("#hb").onclick=()=>{const h=$("#hist"),o=!h.classList.contains("open");h.classList.toggle("open",o);$("#hb").setAttribute("aria-expanded",o);if(o)histPanel();};
+function histPanel(){const h=$("#hist");h.textContent="";h.append(el("h2",null,"This session"),el("p","sm","History is kept only while this page is open. It disappears when you leave or refresh."));h.lastChild.style.marginBottom="20px";
+  if(!sessions.length)h.append(el("p","sm","No files yet."));
+  sessions.slice().reverse().forEach(x=>{const b=el("button","hi"+(x===S?" on":""));b.append(el("b",null,x.name),el("small",null,new Date(x.at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+" · "+(x.size/1024).toFixed(0)+" KB"));
+    b.onclick=()=>{S=x;$("#hist").classList.remove("open");$("#hb").setAttribute("aria-expanded",false);view("work");render();};h.append(b);});
+  if(sessions.length){const c=el("button","ghost","Clear history");c.onclick=()=>{sessions=sessions.filter(x=>x===S);histPanel();updHb();};h.append(c);}}
+const updHb=()=>{$("#hb").textContent=sessions.length?"History ("+sessions.length+")":"History";};
+function view(v){$("#hero").hidden=v!=="hero";$("#work").hidden=v!=="work";$("#sbar").hidden=v!=="work"||!sample;}
+function status(t,p){clearTimeout(tt);document.querySelectorAll(".toast").forEach(x=>x.remove());const b=$("#pbar");
+  if(!t){b.style.width="100%";tt=setTimeout(()=>{b.style.opacity="0";setTimeout(()=>{b.style.width="0";b.style.opacity="1";},400);},300);return;}
+  b.style.opacity="1";b.style.width=p+"%";const d=el("div","toast");d.setAttribute("role","status");d.append(el("div","spin"),el("span",null,t));document.body.append(d);}
+function fail(t){status("");const d=el("div","toast er");d.setAttribute("role","alert");d.append(el("span",null,t));document.body.append(d);tt=setTimeout(()=>d.remove(),6000);}
+function reset(){if(typeof closeAI==="function"){closeAI();closeDash();}token++;charts.forEach(c=>c.destroy());charts=[];S=null;status("");document.querySelectorAll(".toast").forEach(x=>x.remove());view("hero");}
+// ---- upload ----
+const drop=$("#drop"),fi=$("#fi");drop.onclick=()=>fi.click();drop.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fi.click();}};
+fi.onchange=()=>{if(fi.files[0])load(fi.files[0]);fi.value="";};
+["dragover","dragenter"].forEach(v=>drop.addEventListener(v,e=>{e.preventDefault();drop.classList.add("over");}));["dragleave","drop"].forEach(v=>drop.addEventListener(v,e=>{e.preventDefault();drop.classList.remove("over");}));
+drop.addEventListener("drop",e=>{const f=e.dataTransfer.files[0];if(f)load(f);});
+$("#demo").onclick=()=>{const br=["CSE","IT","ECE","Mech"],r=[];let s=7;const rnd=()=>(s=(s*9301+49297)%233280)/233280;
+  for(let i=0;i<150;i++){const att=Math.round(55+rnd()*45),sh=Math.round((1+rnd()*5)*10)/10;r.push({Student:"S"+(i+1),Branch:br[i%4],Semester:1+i%2,Attendance:att,StudyHours:sh,Marks:Math.round(Math.min(100,15+att*.35+sh*6+rnd()*18))});}
+  load(new File([Papa.unparse(r)],"student_performance_sample.csv",{type:"text/csv"}));};
+const mk=(name,cols,rows)=>({name,cols,rows:rows.map(r=>{const o={};cols.forEach(c=>{let v=r[c];if(v&&typeof v==="object")v=JSON.stringify(v);o[c]=v===undefined?null:v;});return o;})});
+const IMG=["png","jpg","jpeg","webp"];let tid=0;
+const addT=(t,fname)=>{t.id="t"+(++tid);t.file=fname;t.label=fname+" · "+t.name;S.tables.push(t);return t;};
+const fromRows=t=>{const cols=(t.columns||[]).map(String),rows=(t.rows||[]).map(r=>{const o={};cols.forEach((c,i)=>{let v=r[i];if(typeof v==="string"&&v.trim()!==""&&isFinite(v.replace(/[,%$₹]/g,"")))v=+v.replace(/[,%$₹]/g,"");o[c]=v===undefined||v===""?null:v;});return o;});return rows.length?mk(t.name||"Table",cols,rows):null;};
+const note=t=>{status(t,100);setTimeout(()=>status(""),1800);};
+async function readImages(images){throw new Error("Image OCR is not connected yet. CSV, Excel, JSON, TXT and text-based PDF files are supported.");}
+async function parseFile(file){
+  const ext=file.name.split(".").pop().toLowerCase(),o={ext,tables:[],text:"",pages:0,note:"",images:[]};
+  if(ext==="csv"||ext==="tsv"){const r=Papa.parse(await file.text(),{header:true,dynamicTyping:true,skipEmptyLines:true});o.tables=[mk("Data",r.meta.fields,r.data)];}
+  else if(ext==="xlsx"||ext==="xls"){const wb=XLSX.read(await file.arrayBuffer());wb.SheetNames.slice(0,8).forEach(n=>{const rows=XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:null});if(rows.length)o.tables.push(mk(n,[...new Set(rows.slice(0,500).flatMap(Object.keys))],rows));});}
+  else if(ext==="json"){let d=JSON.parse(await file.text()),arr=Array.isArray(d)?d:Object.values(d||{}).find(v=>Array.isArray(v)&&v.length&&typeof v[0]==="object");
+    if(arr&&arr.length){arr=arr.map(v=>v&&typeof v==="object"&&!Array.isArray(v)?v:{value:v});o.tables=[mk("Data",[...new Set(arr.slice(0,500).flatMap(Object.keys))],arr)];}else o.text=JSON.stringify(d,null,1);}
+  else if(ext==="txt"){o.text=await file.text();}
+  else if(IMG.includes(ext)){o.images=[file];o.note="Read with AI vision.";}
+  else if(ext==="pdf"){pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise,n=Math.min(pdf.numPages,60);let t="";
+    for(let i=1;i<=n;i++){const c=await (await pdf.getPage(i)).getTextContent();t+=c.items.map(x=>x.str).join(" ")+"\n";}o.text=t;o.pages=pdf.numPages;if(pdf.numPages>n)o.note="Only the first "+n+" pages were read.";
+    if(t.replace(/\s/g,"").length<30*Math.min(n,3)){const k=Math.min(pdf.numPages,6);for(let i=1;i<=k;i++){const pg=await pdf.getPage(i),vp=pg.getViewport({scale:1.5}),cv=document.createElement("canvas");cv.width=vp.width;cv.height=vp.height;await pg.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;o.images.push(await new Promise(r=>cv.toBlob(r,"image/jpeg",.8)));}o.note="Scanned PDF: the first "+k+" pages were read with AI vision.";}}
+  else throw new Error("type");
+  return o;}
+async function load(file){
+  reset();const my=token;if(file.size>150*1048576)return fail("That file is over 150 MB. Please try a smaller one.");
+  status("Reading "+file.name+"…",15);
+  try{const o=await parseFile(file);if(my!==token)return;
+    S={name:file.name,ext:o.ext,size:file.size,at:Date.now(),tables:[],text:o.text,note:o.note,active:0,chat:[],results:{},rc:0,pages:o.pages,dash:[]};
+    o.tables.forEach(t=>addT(t,file.name));
+    if(o.images.length){status("Reading the file with AI vision…",30);const R=await readImages(o.images);if(my!==token)return;S.text=(R.text||"").trim();(R.tables||[]).map(fromRows).filter(Boolean).forEach(t=>addT(t,file.name));}
+    if(!S.tables.length&&!S.text.trim())return fail("I couldn’t find readable data in that file.");
+    sessions.push(S);updHb();view("work");render();await analyze();
+  }catch(e){if(my===token)fail(e.message==="type"?"That file type isn’t supported. Use CSV, Excel, JSON, TXT, PDF or an image.":e.message==="images"||e.message==="ai"?"Reading images needs the AI, which isn’t available in this view.":"Couldn’t read that file. It may be damaged or password-protected.");}
+}
+async function addFile(file){if(!S)return;status("Adding "+file.name+"…",30);
+  try{const o=await parseFile(file);let tabs=o.tables;if(o.images.length)tabs=((await readImages(o.images)).tables||[]).map(fromRows).filter(Boolean);
+    if(!tabs.length)return fail("I couldn’t find a table in that file. Only tables can be combined.");
+    tabs.forEach(t=>addT(t,file.name));render();if(!$("#ai").hidden)paintAI();note("Added "+tabs.length+" table"+(tabs.length>1?"s":"")+" from "+file.name+". Ask the AI to compare or join them.");}
+  catch(e){fail("Couldn’t add that file.");}}
+// ---- profiling ----
+const num=v=>typeof v==="number"&&isFinite(v);
+function profile(t){const n=t.rows.length;
+  const cols=t.cols.map(c=>{const vals=t.rows.map(r=>r[c]).filter(v=>v!==null&&v!==""),nums=vals.filter(num);let type="text";
+    if(vals.length&&nums.length/vals.length>.9)type="number";else if(vals.length&&vals.filter(v=>typeof v==="string"&&/\d{4}-\d{2}|\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}/.test(v)&&!isNaN(Date.parse(v))).length/vals.length>.9)type="date";
+    const o={name:c,type,missing:n-vals.length,unique:new Set(vals).size};
+    if(type==="number"){const s=nums.slice().sort((a,b)=>a-b),m=nums.reduce((a,b)=>a+b,0)/nums.length;Object.assign(o,{min:s[0],max:s[s.length-1],mean:+m.toFixed(3),median:s[Math.floor(s.length/2)],std:+Math.sqrt(nums.reduce((a,b)=>a+(b-m)**2,0)/nums.length).toFixed(3)});}
+    else{const m={};vals.forEach(v=>{v=String(v);m[v]=(m[v]||0)+1;});o.top=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,5);if(type==="date"){const d=vals.map(Date.parse).sort((a,b)=>a-b);o.from=new Date(d[0]).toISOString().slice(0,10);o.to=new Date(d[d.length-1]).toISOString().slice(0,10);}}
+    return o;});
+  const ns=cols.filter(c=>c.type==="number").slice(0,8),corr=[];
+  for(let i=0;i<ns.length;i++)for(let j=i+1;j<ns.length;j++){const p=t.rows.filter(r=>num(r[ns[i].name])&&num(r[ns[j].name]));if(p.length<5)continue;const a=p.map(r=>r[ns[i].name]),b=p.map(r=>r[ns[j].name]),ma=a.reduce((x,y)=>x+y,0)/a.length,mb=b.reduce((x,y)=>x+y,0)/b.length;
+    let sxy=0,sx=0,sy=0;a.forEach((v,k)=>{sxy+=(v-ma)*(b[k]-mb);sx+=(v-ma)**2;sy+=(b[k]-mb)**2;});const r=sxy/Math.sqrt(sx*sy);if(isFinite(r)&&Math.abs(r)>.3)corr.push({a:ns[i].name,b:ns[j].name,r:+r.toFixed(2)});}
+  corr.sort((x,y)=>Math.abs(y.r)-Math.abs(x.r));
+  return{sheet:t.name,rows:n,duplicateRows:n<=50000?n-new Set(t.rows.map(r=>JSON.stringify(r))).size:null,columns:cols,strongCorrelations:corr.slice(0,6),firstRows:t.rows.slice(0,5)};}
+const cut=o=>{let s=JSON.stringify(o);if(s.length>9000){o={...o,firstRows:undefined};s=JSON.stringify(o);}return s.length>12000?s.slice(0,12000):s;};
+async function ask(p){
+  const raw=await geminiRequest(p,"",true);
+  try{
+    const obj=JSON.parse(String(raw).trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,""));
+    if(!obj || typeof obj!=="object" || Array.isArray(obj)) throw new Error("not an object");
+    obj.summary=typeof obj.summary==="string"?obj.summary:"The AI could not create a summary for this file.";
+    obj.insights=Array.isArray(obj.insights)?obj.insights.filter(x=>x&&typeof x.title==="string"&&typeof x.detail==="string"):[];
+    obj.actions=Array.isArray(obj.actions)?obj.actions.filter(x=>typeof x==="string"):[];
+    obj.quality=Array.isArray(obj.quality)?obj.quality.filter(x=>typeof x==="string"):[];
+    obj.charts=Array.isArray(obj.charts)?obj.charts.filter(x=>x&&typeof x.type==="string"&&typeof x.title==="string"&&typeof x.x==="string"):[];
+    obj.followups=Array.isArray(obj.followups)?obj.followups.filter(x=>typeof x==="string"):[];
+    return obj;
+  }catch(e){throw Object.assign(new Error("Gemini returned an unusable analysis. Try again, or try a smaller file."),{code:"invalid_json"});}
+}
+function explain(e){const c=e&&e.code,m={not_granted:"Please allow the AI request when asked, then try again.",rate_limited:"You’ve reached the AI usage limit for now. Wait a bit, or switch to the Fast setting.",session_expired:"Please sign in to claude.ai again.",sampling_disabled:"AI isn’t available for this account.",capability_disabled:"AI isn’t available in this view.",not_declared:"AI isn’t available in this view.",refused:"The AI declined that request. Try asking differently.",empty_completion:"The AI returned nothing. Try rephrasing the question.",prompt_too_large:"That needs too much data at once. Ask for less, for example fewer rows.",invalid_json:"The AI returned an analysis in an unusable format. Please retry; if it repeats, try a smaller file.",image_rejected:"That image couldn’t be read. Try a clearer file.",cancelled:"Stopped."};
+  return(m[c]||"The AI hit a problem. Please try again.")+(c&&c!=="cancelled"?" (code: "+c+")":"");}
+const aiError=explain;
+const SPEC='{"type":"bar|line|pie|hist|scatter","title":"...","x":"exact column name","y":"exact column name or null","agg":"count|sum|mean"}';
+async function analyze(){
+  const my=token,me=S;status("Profiling your data…",40);let prompt;
+  if(S.tables.length){S.P=profile(S.tables[S.active]);render();
+    prompt="You are an expert data analyst. Here is a statistical profile of a dataset (computed from every row):\n"+cut(S.P)+"\nReturn ONLY JSON: {\"summary\":\"3-4 plain sentences\",\"insights\":[{\"title\":\"short\",\"detail\":\"1-2 sentences with real numbers from the profile\"}] (4 to 6),\"actions\":[\"3 to 5 concrete recommended next steps\"],\"quality\":[\"data quality issues, or empty\"],\"charts\":["+SPEC+"] (3 to 5, exact column names only; hist needs a numeric x; scatter needs numeric x and y; line needs a date or ordered x),\"followups\":[\"3 short questions the user could ask next\"]}. Never invent numbers that are not in the profile.";}
+  else{const t=S.text.slice(0,14000);if(S.text.length>14000)S.note=(S.note?S.note+" ":"")+"Analysed the first 14,000 characters.";
+    prompt="You are an expert analyst. Summarise this document and extract what matters:\n\n"+t+"\n\nReturn ONLY JSON: {\"summary\":\"3-4 sentences\",\"insights\":[{\"title\":\"short\",\"detail\":\"1-2 sentences\"}] (4 to 6 key takeaways: numbers, names, dates, decisions),\"actions\":[\"action items or recommended next steps, 3 to 5\"],\"quality\":[\"caveats, or empty\"],\"charts\":[],\"followups\":[\"3 short questions\"]}";}
+  status("AI is analysing your file…",70);
+  try{const R=await ask(prompt);if(my!==token||S!==me)return;S.R=R;status("");render();}catch(e){if(my===token){fail(aiError(e));if(S===me)render(true);}}
+}
+// ---- charts ----
+function build(t,s){if(!t||!s||(!s.mode&&!t.cols.includes(s.x))||(s.y&&!t.cols.includes(s.y)))return null;const rows=t.rows;
+  if(s.mode==="column-summary"){
+    const cols=(s.ys||[]).filter(c=>t.cols.includes(c));if(!cols.length)return null;
+    const labels=cols,data=cols.map(c=>{const vals=rows.map(r=>toNum(r[c])).filter(v=>v!==null);if(!vals.length)return 0;return +(s.agg==="sum"?vals.reduce((a,b)=>a+b,0):vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2);});
+    return{type:s.type==="pie"?"pie":"bar",labels,data,label:s.agg==="sum"?"Total":"Average"};
+  }
+  if(s.type==="hist"){const v=rows.map(r=>r[s.x]).filter(num);if(v.length<2)return null;const mn=Math.min(...v),mx=Math.max(...v),k=10,w=(mx-mn)/k||1,c=Array(k).fill(0);v.forEach(x=>c[Math.min(k-1,Math.floor((x-mn)/w))]++);return{type:"bar",labels:c.map((_,i)=>(mn+i*w).toFixed(1)),data:c,label:"Count of "+s.x};}
+  if(s.type==="scatter"){if(!s.y)return null;const p=rows.filter(r=>num(r[s.x])&&num(r[s.y])).slice(0,600).map(r=>({x:r[s.x],y:r[s.y]}));return p.length?{type:"scatter",points:p,xl:s.x,yl:s.y}:null;}
+  if(Array.isArray(s.ys)&&s.ys.length>1&&(s.type==="bar"||s.type==="line")){
+    const valid=s.ys.filter(c=>t.cols.includes(c));if(valid.length<2)return null;
+    const rows2=rows.filter(r=>r[s.x]!==null&&r[s.x]!==undefined&&r[s.x]!=="");
+    let labels=[...new Set(rows2.map(r=>String(r[s.x])))];
+    if(s.type==="line")labels.sort((a,b)=>{const da=Date.parse(a),db=Date.parse(b);return Number.isFinite(da)&&Number.isFinite(db)?da-db:(Number(a)-Number(b))||a.localeCompare(b);});
+    else labels=labels.slice(0,80);
+    return{type:s.type,labels,datasets:valid.map((c,i)=>({label:c,data:labels.map(label=>{const vs=rows2.filter(r=>String(r[s.x])===label).map(r=>toNum(r[c])).filter(v=>v!==null);if(!vs.length)return null;return +(s.agg==="sum"?vs.reduce((a,b)=>a+b,0):s.agg==="mean"?vs.reduce((a,b)=>a+b,0)/vs.length:vs.length).toFixed(2);}),backgroundColor:PAL[i%8],borderColor:PAL[i%8],borderRadius:5,tension:.3,fill:false}))};
+  }
+  const g={};rows.forEach(r=>{const k=r[s.x];if(k===null||k===undefined||k==="")return;const key=String(k),a=g[key]||(g[key]={n:0,sum:0,valid:0});a.n++;if(s.y&&num(r[s.y])){a.sum+=r[s.y];a.valid++;}});
+  let e=Object.entries(g).map(([k,a])=>[k,s.agg==="mean"&&s.y?(a.valid?a.sum/a.valid:0):s.agg==="sum"&&s.y?a.sum:a.n]);if(!e.length)return null;
+  if(s.type==="line")e.sort((a,b)=>isNaN(Date.parse(a[0]))||/^\d+(\.\d+)?$/.test(a[0])?parseFloat(a[0])-parseFloat(b[0]):Date.parse(a[0])-Date.parse(b[0]));else e.sort((a,b)=>b[1]-a[1]);
+  e=e.slice(0,s.type==="line"?200:12);return{type:s.type==="line"?"line":s.type==="pie"?"pie":"bar",labels:e.map(x=>x[0]),data:e.map(x=>+x[1].toFixed(2)),label:(s.agg==="count"||!s.y?"Count":s.agg+" of "+s.y)};}
+function invert(A){const n=A.length,M=A.map((r,i)=>[...r,...Array.from({length:n},(_,j)=>+(i===j))]);for(let i=0;i<n;i++){let p=i;for(let r=i+1;r<n;r++)if(Math.abs(M[r][i])>Math.abs(M[p][i]))p=r;if(Math.abs(M[p][i])<1e-12)return null;[M[i],M[p]]=[M[p],M[i]];const d=M[i][i];M[i]=M[i].map(v=>v/d);for(let r=0;r<n;r++)if(r!==i){const f=M[r][i];M[r]=M[r].map((v,j)=>v-f*M[i][j]);}}return M.map(r=>r.slice(n));}
+function evalNumericFormula(expr,row){
+  const src=String(expr||'').trim(),tokens=[];let pos=0;
+  const re=/\s*(row(?:\.[A-Za-z_$][\w$]*|\["[^"\n]*"\]|\['[^'\n]*'\])|(?:\d+(?:\.\d*)?|\.\d+)|[()+\-*/%])/y;
+  while(pos<src.length){re.lastIndex=pos;const m=re.exec(src);if(!m)throw new Error('Formula supports only numeric values, row.Column or row["Column name"], parentheses, and + - * / %.');tokens.push(m[1]);pos=re.lastIndex;}
+  let i=0;const peek=()=>tokens[i],take=()=>tokens[i++];
+  function atom(){const t=take();if(t==='('){const v=add();if(take()!==')')throw new Error('Missing closing parenthesis.');return v;}if(t==='+'||t==='-'){const v=atom();return t==='-'?-v:v;}
+    if(/^row(?:\.|\[)/.test(t)){let key;if(t.startsWith('row.'))key=t.slice(4);else key=t.slice(5,-2);const v=toNum(row[key]);return v===null?NaN:v;}
+    const n=Number(t);if(!Number.isFinite(n))throw new Error('Invalid numeric formula.');return n;}
+  function mul(){let v=atom();while(['*','/','%'].includes(peek())){const op=take(),b=atom();v=op==='*'?v*b:op==='/'?v/b:v%b;}return v;}
+  function add(){let v=mul();while(peek()==='+'||peek()==='-'){const op=take(),b=mul();v=op==='+'?v+b:v-b;}return v;}
+  if(!tokens.length)throw new Error('Formula is empty.');const value=add();if(i!==tokens.length)throw new Error('Unexpected token in formula.');return Number.isFinite(value)?+value.toFixed(4):null;
+}
+function extraTools(T,filt,srt){
+  const mean=a=>a.reduce((x,y)=>x+y,0)/a.length,vari=a=>{const m=mean(a);return a.reduce((x,y)=>x+(y-m)**2,0)/(a.length-1);},rnd=v=>typeof v==="number"&&isFinite(v)?+v.toPrecision(5):v;
+  const verdict=p=>p<.001?"highly significant (p<0.001)":p<.01?"significant (p<0.01)":p<.05?"significant at the 5% level":"not statistically significant at the 5% level";
+  const missing=()=>"Unknown dataset. Available: "+S.tables.map(t=>t.id+"="+t.label).join("; ");
+  return[
+  T("stat_test","Run a statistical test. ttest: compare a numeric column between two groups. anova: compare across 3 or more groups. chi_square: association between two categorical columns. correlation: relationship between two numeric columns (Pearson and Spearman). Returns p-values and a plain-language conclusion.",{type:"object",properties:{test:{type:"string",enum:["ttest","anova","chi_square","correlation"]},value_column:{type:"string"},group_column:{type:"string"},group_a:{type:["string","number"]},group_b:{type:["string","number"]},column_a:{type:"string"},column_b:{type:"string"},filters:filt},required:["test"]},p=>{
+    const rows=sel(p.filters);
+    if(p.test==="ttest"||p.test==="anova"){need([p.value_column,p.group_column]);const g={};rows.forEach(r=>{const v=toNum(r[p.value_column]),k=r[p.group_column];if(v!==null&&!isEmpty(k))(g[String(k)]=g[String(k)]||[]).push(v);});const keys=Object.keys(g).filter(k=>g[k].length>1);
+      if(p.test==="ttest"){const a=String(p.group_a!==undefined?p.group_a:keys[0]),b=String(p.group_b!==undefined?p.group_b:keys[1]);if(!g[a]||!g[b])throw new Error("Need two groups with data. Groups found: "+Object.keys(g).join(", "));
+        const x=g[a],y=g[b],mx=mean(x),my=mean(y),vx=vari(x),vy=vari(y),se=Math.sqrt(vx/x.length+vy/y.length),t=(mx-my)/se,df=(vx/x.length+vy/y.length)**2/((vx/x.length)**2/(x.length-1)+(vy/y.length)**2/(y.length-1)),pv=2*(1-jStat.studentt.cdf(Math.abs(t),df)),sp=Math.sqrt(((x.length-1)*vx+(y.length-1)*vy)/(x.length+y.length-2));
+        return{test:"Welch t-test",groups:{[a]:{n:x.length,mean:rnd(mx)},[b]:{n:y.length,mean:rnd(my)}},t:rnd(t),df:rnd(df),p_value:rnd(pv),cohens_d:rnd((mx-my)/sp),conclusion:verdict(pv)};}
+      const all=keys.flatMap(k=>g[k]),gm=mean(all),k=keys.length;if(k<2)throw new Error("Need at least two groups");
+      const ssb=keys.reduce((s,q)=>s+g[q].length*(mean(g[q])-gm)**2,0),ssw=keys.reduce((s,q)=>s+g[q].reduce((a,v)=>a+(v-mean(g[q]))**2,0),0),d1=k-1,d2=all.length-k,F=(ssb/d1)/(ssw/d2),pv=1-jStat.centralF.cdf(F,d1,d2);
+      return{test:"One-way ANOVA",groups:Object.fromEntries(keys.map(q=>[q,{n:g[q].length,mean:rnd(mean(g[q]))}])),F:rnd(F),df:[d1,d2],p_value:rnd(pv),eta_squared:rnd(ssb/(ssb+ssw)),conclusion:verdict(pv)};}
+    need([p.column_a,p.column_b]);
+    if(p.test==="chi_square"){const C={},ra={},cb={};let n=0;rows.forEach(r=>{const a=r[p.column_a],b=r[p.column_b];if(isEmpty(a)||isEmpty(b))return;const ka=String(a),kb=String(b),k=ka+"|"+kb;C[k]=(C[k]||0)+1;ra[ka]=(ra[ka]||0)+1;cb[kb]=(cb[kb]||0)+1;n++;});
+      let chi=0;Object.keys(ra).forEach(a=>Object.keys(cb).forEach(b=>{const e=ra[a]*cb[b]/n,o=C[a+"|"+b]||0;chi+=(o-e)**2/e;}));const na=Object.keys(ra).length,nb=Object.keys(cb).length,df=(na-1)*(nb-1),pv=1-jStat.chisquare.cdf(chi,df);
+      return{test:"Chi-square test of independence",n,chi_square:rnd(chi),df,p_value:rnd(pv),cramers_v:rnd(Math.sqrt(chi/(n*(Math.min(na,nb)-1)))),conclusion:verdict(pv)};}
+    const pr=rows.filter(r=>toNum(r[p.column_a])!==null&&toNum(r[p.column_b])!==null),x=pr.map(r=>toNum(r[p.column_a])),y=pr.map(r=>toNum(r[p.column_b])),n=x.length;
+    const corr=(a,b)=>{const ma=mean(a),mb=mean(b);let s=0,sa=0,sb=0;a.forEach((v,i)=>{s+=(v-ma)*(b[i]-mb);sa+=(v-ma)**2;sb+=(b[i]-mb)**2;});return s/Math.sqrt(sa*sb);};
+    const rank=a=>{const s=a.map((v,i)=>[v,i]).sort((p,q)=>p[0]-q[0]),r=Array(a.length);for(let i=0;i<s.length;){let j=i;while(j+1<s.length&&s[j+1][0]===s[i][0])j++;for(let k=i;k<=j;k++)r[s[k][1]]=(i+j)/2+1;i=j+1;}return r;};
+    const r=corr(x,y),t=r*Math.sqrt((n-2)/(1-r*r)),pv=2*(1-jStat.studentt.cdf(Math.abs(t),n-2));return{test:"Correlation",n,pearson_r:rnd(r),spearman_rho:rnd(corr(rank(x),rank(y))),r_squared:rnd(r*r),p_value:rnd(pv),conclusion:verdict(pv)};}),
+  T("regression","Multiple linear regression: predict a numeric column from other numeric columns. Returns coefficients with p-values, R-squared, error, a stored actual-vs-predicted table, and optional predictions for new values (what-if).",{type:"object",properties:{y:{type:"string"},x:{type:"array",items:{type:"string"}},filters:filt,predict:{type:"array",description:"New rows of x values to predict, e.g. [{\"StudyHours\":4,\"Attendance\":80}]",items:{type:"object"}}},required:["y","x"]},({y,x,filters,predict})=>{
+    need([y,...x]);const rows=sel(filters).filter(r=>[y,...x].every(c=>toNum(r[c])!==null)),n=rows.length,k=x.length+1;if(n<k+2)throw new Error("Not enough complete rows ("+n+")");
+    const X=rows.map(r=>[1,...x.map(c=>toNum(r[c]))]),Y=rows.map(r=>toNum(r[y]));
+    const XtX=Array.from({length:k},(_,i)=>Array.from({length:k},(_,j)=>X.reduce((s,r)=>s+r[i]*r[j],0))),XtY=Array.from({length:k},(_,i)=>X.reduce((s,r,m)=>s+r[i]*Y[m],0)),inv=invert(XtX);
+    if(!inv)throw new Error("The columns are perfectly collinear. Remove one.");
+    const b=inv.map(row=>row.reduce((s,v,j)=>s+v*XtY[j],0)),pred=X.map(r=>r.reduce((s,v,i)=>s+v*b[i],0)),my=mean(Y),sse=Y.reduce((s,v,i)=>s+(v-pred[i])**2,0),sst=Y.reduce((s,v)=>s+(v-my)**2,0),df=n-k,s2=sse/df,r2=1-sse/sst;
+    const coef=b.map((v,i)=>{const se=Math.sqrt(s2*inv[i][i]);return{term:i?x[i-1]:"intercept",coefficient:rnd(v),std_error:rnd(se),p_value:rnd(2*(1-jStat.studentt.cdf(Math.abs(v/se),df)))};});
+    const res=store("Regression: actual vs predicted",[...x,y,"predicted","residual"],rows.slice(0,2000).map((r,i)=>{const o={};x.forEach(c=>o[c]=r[c]);o[y]=Y[i];o.predicted=rnd(pred[i]);o.residual=rnd(Y[i]-pred[i]);return o;}),n);
+    const out={n,r_squared:rnd(r2),adjusted_r_squared:rnd(1-(1-r2)*(n-1)/df),rmse:rnd(Math.sqrt(sse/n)),coefficients:coef,result:res.id};
+    if(predict&&predict.length)out.predictions=predict.map(p=>({...p,predicted:rnd(x.reduce((s,c,i)=>s+b[i+1]*toNum(p[c]),b[0]))}));return out;}),
+  T("forecast","Forecast a numeric column forward with a linear trend, ordered by a date column (or by row order). Stores history plus forecast with an approximate 95% range; chart it with x=period, y=value, type line, agg sum.",{type:"object",properties:{value_column:{type:"string"},date_column:{type:"string"},periods:{type:"integer",description:"future points, default 6, max 60"},filters:filt},required:["value_column"]},({value_column,date_column,periods,filters})=>{
+    need([value_column].concat(date_column?[date_column]:[]));let rows=sel(filters).filter(r=>toNum(r[value_column])!==null&&(!date_column||!isNaN(Date.parse(r[date_column]))));
+    if(date_column)rows=rows.slice().sort((a,b)=>Date.parse(a[date_column])-Date.parse(b[date_column]));const n=rows.length;if(n<4)throw new Error("Need at least 4 data points");
+    const y=rows.map(r=>toNum(r[value_column])),t=y.map((_,i)=>i),mt=mean(t),my=mean(y),slope=t.reduce((s,v,i)=>s+(v-mt)*(y[i]-my),0)/t.reduce((s,v)=>s+(v-mt)**2,0),icp=my-slope*mt,fit=t.map(v=>icp+slope*v);
+    const sse=y.reduce((s,v,i)=>s+(v-fit[i])**2,0),se=Math.sqrt(sse/(n-2)),sst=y.reduce((s,v)=>s+(v-my)**2,0),P=Math.min(periods||6,60),dates=date_column?rows.map(r=>Date.parse(r[date_column])):null;
+    const step=dates?(()=>{const g=dates.slice(1).map((d,i)=>d-dates[i]).sort((a,b)=>a-b);return g[Math.floor(g.length/2)]||864e5;})():1;
+    const out=rows.map((r,i)=>({period:date_column?new Date(dates[i]).toISOString().slice(0,10):i+1,value:rnd(y[i]),type:"history",lower:null,upper:null}));
+    for(let h=1;h<=P;h++){const v=icp+slope*(n-1+h);out.push({period:date_column?new Date(dates[n-1]+step*h).toISOString().slice(0,10):n+h,value:rnd(v),type:"forecast",lower:rnd(v-1.96*se),upper:rnd(v+1.96*se)});}
+    return{...store("Forecast of "+value_column,["period","value","type","lower","upper"],out),trend_per_period:rnd(slope),r_squared:rnd(1-sse/sst),method:"linear trend, approximate 95% range"};}),
+  T("outliers","Find unusual rows in a numeric column using the IQR rule or z-scores.",{type:"object",properties:{column:{type:"string"},method:{type:"string",enum:["iqr","zscore"]},threshold:{type:"number"},filters:filt},required:["column"]},({column,method,threshold,filters})=>{
+    need([column]);const rows=sel(filters).filter(r=>toNum(r[column])!==null),v=rows.map(r=>toNum(r[column])).sort((a,b)=>a-b),q=p=>v[Math.floor((v.length-1)*p)],m=mean(v),sd=Math.sqrt(vari(v));let lo,hi;
+    if(method==="zscore"){const z=threshold||3;lo=m-z*sd;hi=m+z*sd;}else{const k=threshold||1.5,q1=q(.25),q3=q(.75);lo=q1-k*(q3-q1);hi=q3+k*(q3-q1);}
+    const out=rows.filter(r=>toNum(r[column])<lo||toNum(r[column])>hi);return{...store("Outliers in "+column,tbl().cols,out.slice(0,2000),out.length),lower_bound:rnd(lo),upper_bound:rnd(hi),rows_checked:rows.length};}),
+  T("clean_data","Clean or edit the data and produce a NEW dataset (the original stays untouched). Operations run in order: drop_duplicates, drop_missing, fill_missing (method mean|median|mode|zero|forward|value), trim, to_number, to_date, case (to lower|upper|title), replace (from,to), rename (to), drop_column, add_column (name, formula as JS using row), remove_outliers, filter.",{type:"object",properties:{operations:{type:"array",items:{type:"object",properties:{op:{type:"string"},column:{type:"string"},columns:{type:"array",items:{type:"string"}},method:{type:"string"},value:{type:["string","number"]},from:{type:["string","number"]},to:{type:"string"},name:{type:"string"},formula:{type:"string",description:"JS expression using row, e.g. row.Marks/row.Total*100"},filters:{type:"array",items:{type:"object"}}},required:["op"]}}},required:["operations"]},({operations})=>{
+    const t=tbl();let cols=[...t.cols],rows=t.rows.map(r=>({...r})),log=[];
+    operations.forEach(o=>{const n0=rows.length,c=o.column,use=cs=>cs&&cs.length?cs:cols;let nt="";if(c&&o.op!=="add_column"&&!cols.includes(c))throw new Error('Unknown column "'+c+'" at this step. Columns now: '+cols.join(", "));
+      switch(o.op){
+        case"drop_duplicates":{const s=new Set(),u=use(o.columns);rows=rows.filter(r=>{const k=JSON.stringify(u.map(x=>r[x]));if(s.has(k))return false;s.add(k);return true;});break;}
+        case"drop_missing":rows=rows.filter(r=>!use(o.columns).some(x=>isEmpty(r[x])));break;
+        case"fill_missing":{const vals=rows.map(r=>r[c]).filter(v=>!isEmpty(v)),ns=vals.map(toNum).filter(v=>v!==null).sort((a,b)=>a-b);let f=o.value;
+          if(o.method==="mean")f=+mean(ns).toFixed(4);else if(o.method==="median")f=ns[Math.floor(ns.length/2)];else if(o.method==="zero")f=0;else if(o.method==="mode"){const m={};vals.forEach(v=>m[v]=(m[v]||0)+1);f=Object.entries(m).sort((a,b)=>b[1]-a[1])[0][0];if(typeof vals[0]==="number")f=+f;}
+          let last=null,cnt=0;rows.forEach(r=>{if(isEmpty(r[c])){if(o.method==="forward"){if(last!==null){r[c]=last;cnt++;}}else{r[c]=f;cnt++;}}else last=r[c];});nt=cnt+" cells filled";break;}
+        case"trim":rows.forEach(r=>cols.forEach(x=>{if(typeof r[x]==="string")r[x]=r[x].trim().replace(/\s+/g," ");}));break;
+        case"to_number":rows.forEach(r=>{if(typeof r[c]==="string"){const v=parseFloat(r[c].replace(/[^0-9.\-]/g,""));r[c]=isNaN(v)?null:v;}});break;
+        case"to_date":rows.forEach(r=>{const d=Date.parse(r[c]);r[c]=isNaN(d)?null:new Date(d).toISOString().slice(0,10);});break;
+        case"case":rows.forEach(r=>{if(typeof r[c]==="string")r[c]=o.to==="upper"?r[c].toUpperCase():o.to==="lower"?r[c].toLowerCase():r[c].toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());});break;
+        case"replace":rows.forEach(r=>{if(String(r[c])===String(o.from))r[c]=o.to;});break;
+        case"rename":cols=cols.map(x=>x===c?o.to:x);rows=rows.map(r=>{const q={};Object.keys(r).forEach(k=>q[k===c?o.to:k]=r[k]);return q;});break;
+        case"drop_column":cols=cols.filter(x=>x!==c);rows.forEach(r=>delete r[c]);break;
+        case"add_column":{if(!o.name||cols.includes(o.name))throw new Error("Choose a new column name that does not already exist.");cols.push(o.name);rows.forEach(r=>{try{r[o.name]=evalNumericFormula(o.formula,r);}catch(e){r[o.name]=null;}});break;}
+        case"remove_outliers":{const v=rows.map(r=>toNum(r[c])).filter(z=>z!==null).sort((a,b)=>a-b),q1=v[Math.floor((v.length-1)*.25)],q3=v[Math.floor((v.length-1)*.75)],lo=q1-1.5*(q3-q1),hi=q3+1.5*(q3-q1);rows=rows.filter(r=>{const z=toNum(r[c]);return z===null||(z>=lo&&z<=hi);});break;}
+        case"filter":rows=rows.filter(r=>(o.filters||[]).every(f=>test(r,f)));break;
+        default:throw new Error("Unknown operation "+o.op);}
+      log.push(o.op+(c?"("+c+")":"")+": "+n0+" → "+rows.length+" rows"+(nt?", "+nt:""));});
+    const res=store("Cleaned data",cols,rows);S.results[res.id].dataset=true;return{...res,log};}),
+  T("join_tables","Join two datasets on a shared column, like VLOOKUP or a SQL join. Use dataset ids or names. Produces a new dataset.",{type:"object",properties:{left:{type:"string"},right:{type:"string"},left_on:{type:"string"},right_on:{type:"string"},how:{type:"string",enum:["inner","left","outer"]}},required:["left","right","left_on","right_on"]},({left,right,left_on,right_on,how})=>{
+    const A=pickTable(left),B=pickTable(right);if(!A||!B)throw new Error(missing());if(!A.cols.includes(left_on)||!B.cols.includes(right_on))throw new Error("Join column not found");
+    const same=left_on===right_on,rn=c=>A.cols.includes(c)?c+"_right":c,bcols=B.cols.filter(c=>!(same&&c===right_on)),cols=[...A.cols,...bcols.map(rn)],idx=new Map();
+    B.rows.forEach(r=>{const k=String(r[right_on]).toLowerCase();if(!idx.has(k))idx.set(k,[]);idx.get(k).push(r);});
+    const out=[],used=new Set();A.rows.forEach(a=>{const m=idx.get(String(a[left_on]).toLowerCase());
+      if(m)m.forEach(b=>{used.add(b);const o={...a};bcols.forEach(c=>o[rn(c)]=b[c]);out.push(o);});else if(how==="left"||how==="outer"){const o={...a};bcols.forEach(c=>o[rn(c)]=null);out.push(o);}});
+    if(how==="outer")B.rows.forEach(b=>{if(!used.has(b)){const o={};cols.forEach(c=>o[c]=null);bcols.forEach(c=>o[rn(c)]=b[c]);o[left_on]=b[right_on];out.push(o);}});
+    const res=store("Joined data ("+(how||"inner")+")",cols,out);S.results[res.id].dataset=true;return res;}),
+  T("compare_tables","Compare an older and a newer dataset (for example two files) by a key column: rows added, rows removed, changed values, and the average change per numeric column.",{type:"object",properties:{a:{type:"string",description:"older dataset"},b:{type:"string",description:"newer dataset"},key:{type:"string"}},required:["a","b","key"]},({a,b,key})=>{
+    const A=pickTable(a),B=pickTable(b);if(!A||!B)throw new Error(missing());if(!A.cols.includes(key)||!B.cols.includes(key))throw new Error("The key column must exist in both datasets");
+    const ma=new Map(A.rows.map(r=>[String(r[key]),r])),mb=new Map(B.rows.map(r=>[String(r[key]),r])),shared=A.cols.filter(c=>c!==key&&B.cols.includes(c)),changed=[],deltas={};
+    mb.forEach((rb,k)=>{const ra=ma.get(k);if(!ra)return;shared.forEach(c=>{if(String(ra[c])!==String(rb[c])){changed.push({[key]:k,column:c,old_value:ra[c],new_value:rb[c]});const x=toNum(ra[c]),y=toNum(rb[c]);if(x!==null&&y!==null)(deltas[c]=deltas[c]||[]).push(y-x);}});});
+    const added=B.rows.filter(r=>!ma.has(String(r[key]))),removed=A.rows.filter(r=>!mb.has(String(r[key]))),out={rows_in_a:A.rows.length,rows_in_b:B.rows.length,added:added.length,removed:removed.length,changed_cells:changed.length,average_change_per_numeric_column:Object.fromEntries(Object.entries(deltas).map(([c,d])=>[c,{mean_change:rnd(mean(d)),rows_changed:d.length}]))};
+    if(changed.length)out.changed_result=store("Changed values",[key,"column","old_value","new_value"],changed.slice(0,5000),changed.length).id;if(added.length)out.added_result=store("Only in "+B.label,B.cols,added).id;if(removed.length)out.removed_result=store("Only in "+A.label,A.cols,removed).id;return out;}),
+  T("pin_to_dashboard","Add an item to the user's dashboard: a chart (spec as in the final answer), a KPI number, or a stored result table.",{type:"object",properties:{type:{type:"string",enum:["chart","kpi","table"]},title:{type:"string"},chart:{type:"object"},label:{type:"string"},value:{type:["string","number"]},result_id:{type:"string"}},required:["type"]},p=>{
+    S.dash.push(p.type==="chart"?{type:"chart",title:p.title||(p.chart&&p.chart.title)||"Chart",spec:p.chart}:p.type==="kpi"?{type:"kpi",label:p.label||p.title||"Value",value:p.value}:{type:"table",title:p.title,id:p.result_id});return{ok:true,dashboard_items:S.dash.length};})];}
+// ---- result tables, exports, dashboard ----
+const csvOf=(cols,rows)=>Papa.unparse({fields:cols,data:rows.map(r=>cols.map(c=>r[c]))});
+async function saveFile(name,data){if(!dl)throw new Error("none");await dl.save({filename:name,data});}
+async function saveXlsx(name,cols,rows){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([cols,...rows.map(r=>cols.map(c=>r[c]))]),"Data");await saveFile(name+".xlsx",XLSX.write(wb,{bookType:"xlsx",type:"array"}));}
+const safeName=t=>String(t||"data").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"_").slice(0,40)||"data";
+function guard(fn){return async()=>{try{await fn();}catch(e){fail("That isn’t available in this view.");}};}
+function useDataset(id){const r=S.results[id];if(!r.used){addT(mk(r.title,r.cols,r.rows),S.name);r.used=true;}S.active=S.tables.length-1;S.R=null;render();analyze();note("Now working on “"+r.title+"”");}
+function resultView(id){const r=S.results[id],c=el("div","res"),h=el("div","rh"),shown=r.rows.slice(0,100);
+  h.append(el("b",null,r.title+" · "+(r.total>shown.length?"showing "+shown.length+" of "+r.total.toLocaleString():r.total.toLocaleString()+" rows")));const b=el("div","btns");
+  if(r.dataset)b.append(btn("Use as working data","ghost",()=>useDataset(id)));
+  b.append(btn("📌 Pin","ghost",()=>{S.dash.push({type:"table",title:r.title,id});note("Pinned to dashboard");}),btn("CSV","ghost",guard(()=>saveFile(safeName(r.title)+".csv",csvOf(r.cols,r.rows)))),btn("Excel","ghost",guard(()=>saveXlsx(safeName(r.title),r.cols,r.rows))));h.append(b);
+  const w=el("div","tw");w.append(tableOf(r.cols,shown.map(x=>r.cols.map(k=>x[k]))));c.append(h,w);return c;}
+let dchart=[];
+function openDash(){if(!S)return;$("#dash").hidden=false;paintDash();}
+function closeDash(){$("#dash").hidden=true;dchart.forEach(c=>c.destroy());dchart=[];}
+function paintDash(){dchart.forEach(c=>c.destroy());dchart=[];const g=$("#dgrid");g.textContent="";if(!$("#dt").value)$("#dt").value="Dashboard: "+S.name;
+  if(!S.dash.length){const e=el("div","empty-s");e.style.gridColumn="1/-1";e.append(el("h2",null,"Your dashboard is empty"),el("p","sm","Pin charts and tables from the AI window, pin charts from the insights page, or build one automatically."));e.append(btn("Auto-build from insights","btn",autoDash));g.append(e);return;}
+  S.dash.forEach((it,i)=>{const c=el("div","card dk"),x=btn("✕","lk dx",()=>{S.dash.splice(i,1);paintDash();});x.title="Remove";x.setAttribute("aria-label","Remove");
+    if(it.type==="kpi"){c.classList.add("kpi");c.append(el("small",null,it.label),el("b",null,String(it.value)));}
+    else if(it.type==="chart"){c.append(el("h3",null,it.title||""));const h=el("div","ch");c.append(h);drawChart(h,it.spec,dchart);}
+    else if(S.results[it.id]){const r=S.results[it.id];c.style.gridColumn="1/-1";c.append(el("h3",null,it.title||r.title));const w=el("div","tw");w.append(tableOf(r.cols,r.rows.slice(0,10).map(q=>r.cols.map(k=>q[k]))));c.append(w);}
+    c.append(x);g.append(c);});}
+function autoDash(){if(!S.R&&!S.tables.length)return;S.dash=[];metrics().slice(0,4).forEach(([k,v])=>S.dash.push({type:"kpi",label:k,value:v}));((S.R&&S.R.charts)||[]).forEach(s=>S.dash.push({type:"chart",title:s.title,spec:s}));paintDash();}
+async function snap(){return await html2canvas($("#dashwrap"),{backgroundColor:getComputedStyle(root).getPropertyValue("--bg").trim(),scale:2});}
+$("#dpng").onclick=guard(async()=>{const cv=await snap();await saveFile("dashboard.png",await new Promise(r=>cv.toBlob(r,"image/png")));});
+$("#dpdf").onclick=guard(async()=>{const cv=await snap(),{jsPDF}=window.jspdf,w=cv.width,h=cv.height,d=new jsPDF({orientation:w>h?"l":"p",unit:"px",format:[w,h]});d.addImage(cv.toDataURL("image/jpeg",.92),"JPEG",0,0,w,h);await saveFile("dashboard.pdf",d.output("blob"));});
+$("#dauto").onclick=autoDash;$("#dx").onclick=closeDash;$("#dt").oninput=()=>{};
+const pdfSafe=t=>String(t==null?"":t).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,"-").replace(/[^\x20-\x7E\u00A0-\u00FF]/g,"");
+async function savePdf(){if(!S.R)throw new Error("none");const {jsPDF}=window.jspdf,d=new jsPDF({unit:"pt",format:"a4"}),W=d.internal.pageSize.getWidth()-96,H=d.internal.pageSize.getHeight()-60;let y=56;
+  const room=h=>{if(y+h>H){d.addPage();y=56;}},add=(t,size,bold,gap)=>{d.setFont("helvetica",bold?"bold":"normal");d.setFontSize(size);d.splitTextToSize(pdfSafe(t),W).forEach(l=>{room(size*1.5);d.text(l,48,y);y+=size*1.5;});y+=gap===undefined?6:gap;},A=S.R;
+  add("Insights report",22,1,2);add(S.name,11,0,16);add("Executive Summary",14,1);add(A.summary||"",11,0,14);add("Key Takeaways",14,1);(A.insights||[]).forEach((i,n)=>add((n+1)+". "+i.title+": "+i.detail,11,0,4));y+=10;
+  if((A.actions||[]).length){add("Action Items",14,1);A.actions.forEach(x=>add("- "+x,11,0,4));y+=10;}
+  charts.forEach(c=>{const cv=document.createElement("canvas");cv.width=c.canvas.width;cv.height=c.canvas.height;const x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,cv.width,cv.height);x.drawImage(c.canvas,0,0);const h=W*cv.height/cv.width;room(h+10);d.addImage(cv.toDataURL("image/jpeg",.9),"JPEG",48,y,W,h);y+=h+16;});
+  await saveFile("insights-report.pdf",d.output("blob"));}
+function exportMenu(b){const old=$("#xm");if(old){old.remove();return;}const m=el("div","xm");m.id="xm";const t=S.tables.length?tbl():null,nm=safeName(t?t.name:S.name);
+  const it=[["Report (PDF)",savePdf],["Report (Markdown)",saveReport],["Copy report text",copyReport]];if(t)it.push(["Data (Excel)",()=>saveXlsx(nm,t.cols,t.rows)],["Data (CSV)",()=>saveFile(nm+".csv",csvOf(t.cols,t.rows))],["Data (JSON)",()=>saveFile(nm+".json",JSON.stringify(t.rows,null,1))]);
+  it.forEach(([l,fn])=>m.append(btn(l,"xi",()=>{m.remove();guard(fn)();})));b.parentNode.style.position="relative";b.after(m);}
+document.addEventListener("click",e=>{const m=$("#xm");if(m&&!m.contains(e.target)&&!e.target.closest(".xb"))m.remove();});
+const fi2=$("#fi2");fi2.onchange=()=>{if(fi2.files[0])addFile(fi2.files[0]);fi2.value="";};$("#aadd").onclick=()=>fi2.click();
+function chartTable(s){const r=s&&s.from&&S.results[s.from];return r?{cols:r.cols,rows:r.rows}:S.tables[S.active];}
+function drawChart(host,s,arr){arr=arr||charts;const b=build(chartTable(s),s);if(!b){host.append(el("p","sm","This chart couldn’t be built from the data."));return;}
+  const cs=getComputedStyle(root),tx=cs.getPropertyValue("--mu").trim(),gr=cs.getPropertyValue("--ln").trim(),cv=el("canvas");host.append(cv);
+  const circ=b.type==="pie",ds=b.type==="scatter"?{data:b.points,backgroundColor:PAL[0]+"aa"}:b.datasets?b.datasets:{label:b.label,data:b.data,backgroundColor:circ?b.labels.map((_,i)=>PAL[i%8]):b.type==="line"?PAL[1]:PAL[0],borderColor:b.type==="line"?PAL[1]:PAL[0],borderRadius:6,tension:.35,fill:false};
+  arr.push(new Chart(cv,{type:b.type,data:{labels:b.labels,datasets:Array.isArray(ds)?ds:[ds]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:circ,labels:{color:tx}}},
+    scales:circ?{}:{x:{ticks:{color:tx},grid:{color:gr},title:{display:b.type==="scatter",text:b.xl,color:tx}},y:{ticks:{color:tx},grid:{color:gr},title:{display:b.type==="scatter",text:b.yl,color:tx}}}}}));}
+// ---- render ----
+const btn=(t,c,fn)=>{const b=el("button",c,t);b.type="button";b.onclick=fn;return b;};
+const card=h=>{const c=el("section","card");if(h)c.append(h);return c;};
+function tableOf(cols,rows){const T=el("table"),h=el("tr");cols.forEach(c=>h.append(el("th",null,c)));T.append(h);rows.forEach(r=>{const tr=el("tr");r.forEach(v=>tr.append(el("td",typeof v==="number"?"num":"",v===null||v===undefined?"":String(v))));T.append(tr);});return T;}
+function metrics(){if(S.tables.length){if(!S.P)return[];const P=S.P,cells=P.rows*P.columns.length,miss=P.columns.reduce((a,c)=>a+c.missing,0),top=P.strongCorrelations[0];
+    return[["Rows",P.rows.toLocaleString()],["Columns",P.columns.length],["Missing values",(cells?miss*100/cells:0).toFixed(1)+"%"],["Duplicate rows",P.duplicateRows===null?"n/a":P.duplicateRows],["Numeric columns",P.columns.filter(c=>c.type==="number").length],["Strongest link",top?top.a+" ↔ "+top.b+" ("+top.r+")":"None found",1]];}
+  const w=S.text.trim().split(/\s+/).length;return[["Words",w.toLocaleString()],["Characters",S.text.length.toLocaleString()],["Reading time",Math.max(1,Math.round(w/220))+" min"]];}
+function render(failed){
+  charts.forEach(c=>c.destroy());charts=[];const L=$("#left"),R=$("#right");L.textContent="";R.textContent="";if(!S)return;
+  // left: document outline
+  const ls=el("div","stack"),fc=card(),f=el("div","file"),ic=el("div","ic",S.tables.length?"📊":S.ext==="pdf"?"📕":"📄"),fb=el("div");fb.append(el("b",null,S.name),el("div","sm",S.ext.toUpperCase()+" file"));f.append(ic,fb);fc.append(f);
+  const kv=(a,b)=>{const r=el("div","kv");r.append(el("span",null,a),el("span",null,String(b)));return r;};
+  fc.append(kv("Type",S.ext.toUpperCase()),kv("Size",S.size>1048576?(S.size/1048576).toFixed(1)+" MB":(S.size/1024).toFixed(0)+" KB"));
+  if(S.tables.length){const t=S.tables[S.active];fc.append(kv("Rows",t.rows.length.toLocaleString()),kv("Columns",t.cols.length));if(S.tables.length>1)fc.append(kv("Sheets",S.tables.length));}
+  else{if(S.pages)fc.append(kv("Pages",S.pages));fc.append(kv("Characters",S.text.length.toLocaleString()));}
+  if(S.note){const nt=el("p","sm",S.note);nt.style.marginTop="12px";fc.append(nt);}ls.append(fc);
+  if(S.tables.length){const t=S.tables[S.active],P=S.P,oc=card(el("h3",null,"Structure")),ch=el("div","chips");
+    t.cols.forEach(c=>{const ty=P&&P.columns.find(x=>x.name===c),s=el("span");s.append(el("small",null,ty?{number:"#",date:"📅",text:"Aa"}[ty.type]:"·"),document.createTextNode(c));ch.append(s);});oc.append(ch);ls.append(oc);
+    const pc=card(el("h3",null,"Preview · first 8 rows")),w=el("div","tw");w.append(tableOf(t.cols,t.rows.slice(0,8).map(r=>t.cols.map(c=>r[c]))));pc.append(w);ls.append(pc);}
+  else{const pc=card(el("h3",null,"Document preview"));pc.append(el("div","exc",S.text.slice(0,1800)));ls.append(pc);}
+  L.append(ls);
+  // right: insights feed
+  const rs=el("div","stack"),hd=el("div","head");hd.append(el("h1",null,"Insights"));const bt=el("div","btns");
+  if(S.tables.length>1){const sel=el("select");sel.setAttribute("aria-label","Sheet");S.tables.forEach((t,i)=>{const o=el("option",null,t.label||t.name);o.value=i;if(i===S.active)o.selected=true;sel.append(o);});sel.onchange=()=>{S.active=+sel.value;S.R=null;S.chat=[];S.results={};S.rc=0;analyze();};bt.append(sel);}
+  if(sample)bt.append(btn("✦ Ask AI","btn",()=>openAI()));bt.append(btn("▦ Dashboard","ghost",openDash));if(S.tables.length)bt.append(btn("＋ Add file","ghost",()=>$("#fi2").click()));const xb=btn("Export ▾","ghost xb",()=>exportMenu(xb));bt.append(xb,btn("New file","ghost",reset));hd.append(bt);rs.append(hd);
+  const mt=metrics();if(mt.length){const g=el("div","metrics");mt.forEach(([k,v,s])=>{const m=el("div","mt");m.append(el("small",null,k),el("b",s?"s":"",String(v)));g.append(m);});rs.append(g);}
+  const bad=failed||!S.R;
+  if(bad){const c=card();c.append(el("p","sm",failed?"The AI summary isn’t available right now. Your file details are shown here.":"The AI is analysing your file…"));rs.append(c);}
+  else{const A=S.R,badge=()=>el("span","badge","✦ AI generated");
+    const sm=card(),h=el("h2",null,"Executive Summary");h.append(badge());sm.append(h,el("p","body",A.summary||""));const q=(A.quality||[]).filter(Boolean);if(q.length){const n=el("p","sm","⚠ "+q.join(" · "));n.style.marginTop="16px";sm.append(n);}rs.append(sm);
+    const kt=card(),h2=el("h2",null,"Key Takeaways");h2.append(badge());kt.append(h2);const it=el("div","items");(A.insights||[]).forEach((x,i)=>{const d=el("div","it"),b=el("div");b.append(el("b",null,x.title),el("span",null,x.detail));d.append(el("div","n",String(i+1)),b);it.append(d);});kt.append(it);rs.append(kt);
+    if((A.actions||[]).length){const ac=card(),h3=el("h2",null,"Action Items");h3.append(badge());ac.append(h3);const l=el("div","items");l.style.gap="12px";A.actions.forEach(x=>{const d=el("div","act");d.append(el("i"),el("span","body",x));l.append(d);});ac.append(l);rs.append(ac);}
+    if((A.charts||[]).length&&S.tables.length){const cg=el("div","cgrid");A.charts.forEach(s=>{const c=card(el("h3",null,s.title||"")),h=el("div","ch"),pb=btn("📌","lk",()=>{S.dash.push({type:"chart",title:s.title,spec:s});note("Pinned to dashboard");});pb.title="Pin to dashboard";c.firstChild.style.cssText="display:flex;justify-content:space-between;align-items:center";c.firstChild.append(pb);c.append(h);cg.append(c);drawChart(h,s);});rs.append(cg);}}
+  if(S.tables.length&&S.P){const tb=card(el("h2",null,"Column statistics")),w=el("div","tw");w.append(tableOf(["Column","Type","Missing","Unique","Min","Mean","Max","Top values"],S.P.columns.map(c=>[c.name,c.type,c.missing,c.unique,c.min??"",c.mean??"",c.max??"",(c.top||[]).slice(0,3).map(x=>x[0]+" ("+x[1]+")").join(", ")])));tb.append(w);rs.append(tb);}
+  R.append(rs);
+}
+// ---- Full-screen AI workspace: tools run on the FULL data in the browser ----
+let ctl=null,live=null,achart=[];
+let curT=null;const tbl=()=>curT||S.tables[S.active];
+const pickTable=x=>{if(!x)return null;const q=String(x).toLowerCase();return S.tables.find(t=>t.id===x||t.label.toLowerCase()===q||t.name.toLowerCase()===q)||null;};
+const toNum=x=>typeof x==="number"?x:(typeof x==="string"&&x.trim()!==""&&isFinite(+x)?+x:null);
+const isEmpty=v=>v===null||v===undefined||v==="";
+function cmp(a,b){const na=toNum(a),nb=toNum(b);if(na!==null&&nb!==null)return na-nb;const da=Date.parse(a),db2=Date.parse(b);if(typeof a==="string"&&!isNaN(da)&&!isNaN(db2))return da-db2;return String(a).localeCompare(String(b));}
+function test(r,f){const v=r[f.column],e=isEmpty(v),s=x=>String(x).toLowerCase();
+  switch(f.op){case"empty":return e;case"notempty":return !e;case"=":return !e&&cmp(v,f.value)===0;case"!=":return e||cmp(v,f.value)!==0;case">":return !e&&cmp(v,f.value)>0;case">=":return !e&&cmp(v,f.value)>=0;case"<":return !e&&cmp(v,f.value)<0;case"<=":return !e&&cmp(v,f.value)<=0;
+    case"contains":return !e&&s(v).includes(s(f.value));case"startswith":return !e&&s(v).startsWith(s(f.value));case"in":return !e&&(f.values||[]).some(x=>cmp(v,x)===0);}
+  throw new Error("Unknown operator "+f.op);}
+function need(cols){const t=tbl();cols.forEach(c=>{if(!t.cols.includes(c))throw new Error('Unknown column "'+c+'". Columns are: '+t.cols.join(", "));});}
+function sel(filters){filters=filters||[];need(filters.map(f=>f.column));return tbl().rows.filter(r=>filters.every(f=>test(r,f)));}
+function order(rows,sort,cols){sort=[].concat(sort||[]).filter(Boolean);if(!sort.length)return rows;if(cols)sort.forEach(x=>{if(!cols.includes(x.column))throw new Error('Unknown column "'+x.column+'". Result columns are: '+cols.join(", "));});else need(sort.map(s=>s.column));
+  return rows.slice().sort((a,b)=>{for(const s of sort){const x=a[s.column],y=b[s.column];if(isEmpty(x)&&isEmpty(y))continue;if(isEmpty(x))return 1;if(isEmpty(y))return -1;const d=cmp(x,y);if(d)return s.dir==="desc"?-d:d;}return 0;});}
+const short=v=>v===null||v===undefined?"":String(v).slice(0,40);
+function store(title,cols,rows,total){const id="r"+(++S.rc);if(live&&live.created)live.created.push(id);S.results[id]={id,title,cols,rows,total:total===undefined?rows.length:total};
+  return{id,total_matching:S.results[id].total,columns:cols,preview:rows.slice(0,8).map(r=>cols.map(c=>short(r[c]))),note:"Full result is stored as "+id+'. Put "'+id+'" in "show" to display it to the user.'};}
+function step(name,inp,out){const s=name+" "+JSON.stringify(inp||{}).slice(0,110)+(out&&out.total_matching!==undefined?"  →  "+out.total_matching+" rows":"");
+  if(live){live.steps.push(s);live.box.append(el("div",null,"⚙ "+s));scrollFeed();}}
+const stripD=o=>Array.isArray(o)?o.map(stripD):o&&typeof o==="object"?Object.fromEntries(Object.entries(o).filter(([k])=>k!=="description").map(([k,v])=>[k,stripD(v)])):o;
+function groupTools(flat,groups){const by={};flat.forEach(t=>by[t.name]=t);
+  return groups.map(([name,desc,map])=>{
+    if(!map){const t=by[name];return t?{name,description:desc||t.description,inputSchema:stripD(t.inputSchema),execute:t.execute}:null;}
+    const props={action:{type:"string",enum:Object.keys(map)},dataset:{type:"string"}};
+    Object.entries(map).forEach(([a,n])=>{const t=by[n];if(t)Object.entries(t.inputSchema.properties||{}).forEach(([k,v])=>{if(!props[k])props[k]=stripD(v);});});
+    return{name,description:desc,inputSchema:{type:"object",properties:props,required:["action"]},execute:async(inp,ctx)=>{inp=inp||{};const n=map[inp.action];if(!n||!by[n])throw new Error("Unknown action. Use one of: "+Object.keys(map).join(", "));return by[n].execute({...inp,test:inp.action},ctx);}};}).filter(Boolean);}
+const GROUPS_T=[
+  ["rows","Read rows. action=slice: start (0-based; negative counts from the end, so the last 5 rows is start -5, count 5), count (max 500). action=filter: filters [{column,op,value|values}] with op = < <= > >= != contains startswith in empty notempty; sort [{column,dir}]; columns [names]; limit. action=search: text, optional column (finds a specific record). Returns a stored table id, total matches and a preview.",{slice:"get_rows",filter:"query",search:"search"}],
+  ["aggregate","Group and summarise. group_by [columns]; metrics [{column,agg}] with agg = count sum mean median min max distinct; optional filters, sort, limit. Result columns are named like mean_Marks or count. Returns a stored table id.",null],
+  ["stats","Statistics. action=ttest|anova: value_column, group_column (ttest: optional group_a, group_b). action=chi_square|correlation: column_a, column_b. action=regression: y, x [numeric columns], optional predict [{column:value}] for what-if. action=forecast: value_column, optional date_column, periods. action=outliers: column, method iqr|zscore, threshold. All accept filters. Returns p-values and a plain-language conclusion; regression, forecast and outliers also store a table.",{ttest:"stat_test",anova:"stat_test",chi_square:"stat_test",correlation:"stat_test",regression:"regression",forecast:"forecast",outliers:"outliers"}],
+  ["data_ops","Edit or combine datasets; the original stays untouched and a NEW stored dataset results. action=clean: operations [{op,column,columns,method,value,from,to,name,formula,filters}] with op = drop_duplicates drop_missing fill_missing(method mean|median|mode|zero|forward|value) trim to_number to_date case(to lower|upper|title) replace(from,to) rename(to) drop_column add_column(name,formula using row) remove_outliers filter. action=join: left,right,left_on,right_on,how inner|left|outer. action=compare: a (older), b (newer), key.",{clean:"clean_data",join:"join_tables",compare:"compare_tables"}],
+  ["run_code","Disabled for safety. Use the built-in data analysis tools instead.",null],
+  ["pin_to_dashboard","Add an item to the user's dashboard: type chart (chart spec), kpi (label, value) or table (result_id), plus title.",null]];
+const GROUPS_D=[["document","Read a long document. action=read: start, length (max 6000). action=find: query; returns surrounding context for each match.",{read:"read_text",find:"find_text"}]];
+function makeTools(){
+  const T=(name,description,inputSchema,fn)=>{inputSchema={...inputSchema,properties:{...(inputSchema.properties||{}),dataset:{type:"string",description:"Optional dataset id or name; defaults to the active sheet"}}};return{name,description,inputSchema,execute:async inp=>{curT=pickTable(inp&&inp.dataset)||null;try{const out=fn(inp||{});step(name,inp,out);return out;}finally{curT=null;}}};};
+  const filt={type:"array",description:"Row conditions; all must match",items:{type:"object",properties:{column:{type:"string"},op:{type:"string",enum:["=","!=",">",">=","<","<=","contains","startswith","in","empty","notempty"]},value:{type:["string","number"]},values:{type:"array",items:{type:["string","number"]}}},required:["column","op"]}};
+  const srt={type:"array",items:{type:"object",properties:{column:{type:"string"},dir:{type:"string",enum:["asc","desc"]}},required:["column"]}};
+  if(!S.tables.length)return groupTools([
+    T("read_text","Read a slice of the document text.",{type:"object",properties:{start:{type:"integer"},length:{type:"integer",description:"max 6000"}},required:["start"]},({start,length})=>({total_chars:S.text.length,text:S.text.slice(start,start+Math.min(length||4000,6000))})),
+    T("find_text","Find a word or phrase anywhere in the document and return the surrounding context.",{type:"object",properties:{query:{type:"string"}},required:["query"]},({query})=>{const out=[],low=S.text.toLowerCase(),q=query.toLowerCase();let i=-1;while(out.length<20&&(i=low.indexOf(q,i+1))>=0)out.push(S.text.slice(Math.max(0,i-150),i+q.length+150));return{matches:out.length,contexts:out};})],GROUPS_D);
+  const base=[
+    T("get_rows","Get rows by position. start is 0-based; a negative start counts from the end (last 5 rows = start -5, count 5). Includes a # column with the 1-based row number.",{type:"object",properties:{start:{type:"integer"},count:{type:"integer",description:"max 500"}},required:["start","count"]},({start,count})=>{
+      const t=tbl(),n=t.rows.length,s=start<0?Math.max(0,n+start):Math.min(start,n),c=Math.min(Math.max(count||10,1),500),rows=t.rows.slice(s,s+c).map((r,i)=>({"#":s+i+1,...r}));return store("Rows "+(s+1)+" to "+(s+rows.length)+" of "+n,["#",...t.cols],rows,rows.length);}),
+    T("query","Filter, sort and select rows. Use for conditions like marks below 40, top 10 by a column, or listing specific columns.",{type:"object",properties:{filters:filt,sort:srt,columns:{type:"array",items:{type:"string"}},limit:{type:"integer",description:"max 2000, default 500"}}},({filters,sort,columns,limit})=>{
+      const t=tbl();let r=order(sel(filters),sort);const total=r.length,cols=columns&&columns.length?(need(columns),columns):t.cols;
+      return store("Query result",cols,r.slice(0,Math.min(limit||500,2000)).map(x=>{const o={};cols.forEach(c=>o[c]=x[c]);return o;}),total);}),
+    T("aggregate","Group and summarise: counts, sums, averages, min, max, median, distinct counts, optionally filtered and sorted. Result columns are named like mean_Marks, or count.",{type:"object",properties:{group_by:{type:"array",items:{type:"string"}},metrics:{type:"array",items:{type:"object",properties:{column:{type:"string"},agg:{type:"string",enum:["count","sum","mean","median","min","max","distinct"]}},required:["agg"]}},filters:filt,sort:srt,limit:{type:"integer"}}},({group_by,metrics,filters,sort,limit})=>{
+      group_by=group_by||[];metrics=metrics&&metrics.length?metrics:[{agg:"count"}];need(group_by);need(metrics.map(m=>m.column).filter(Boolean));
+      const g=new Map();sel(filters).forEach(r=>{const k=JSON.stringify(group_by.map(c=>r[c]));if(!g.has(k))g.set(k,[]);g.get(k).push(r);});
+      const names=metrics.map(m=>m.column?m.agg+"_"+m.column:"count"),cols=[...group_by,...names],rows=[];
+      g.forEach((rs,k)=>{const o={};JSON.parse(k).forEach((v,i)=>o[group_by[i]]=v);
+        metrics.forEach((m,i)=>{const vs=m.column?rs.map(r=>r[m.column]).filter(v=>!isEmpty(v)):rs,ns=vs.map(toNum).filter(v=>v!==null).sort((a,b)=>a-b);let v;
+          if(m.agg==="count")v=vs.length;else if(m.agg==="distinct")v=new Set(vs).size;else if(!ns.length)v=null;else if(m.agg==="sum")v=ns.reduce((a,b)=>a+b,0);else if(m.agg==="mean")v=ns.reduce((a,b)=>a+b,0)/ns.length;else if(m.agg==="median")v=ns[Math.floor(ns.length/2)];else if(m.agg==="min")v=ns[0];else v=ns[ns.length-1];
+          o[names[i]]=typeof v==="number"?+v.toFixed(4):v;});rows.push(o);});
+      const out=order(rows,sort,cols);return store("Grouped summary",cols,out.slice(0,Math.min(limit||200,2000)),out.length);}),
+    T("search","Find rows where any cell (or one column) contains some text. Use for looking up a specific record, name or ID.",{type:"object",properties:{text:{type:"string"},column:{type:"string"}},required:["text"]},({text,column})=>{
+      const t=tbl(),q=text.toLowerCase();if(column)need([column]);const rows=t.rows.filter(r=>(column?[column]:t.cols).some(c=>!isEmpty(r[c])&&String(r[c]).toLowerCase().includes(q)));return store('Rows matching "'+text+'"',t.cols,rows.slice(0,500),rows.length);}),
+    T("run_code","run",{type:"object",properties:{code:{type:"string"}},required:["code"]},({code})=>{
+      const H={num:toNum,mean:a=>a.reduce((x,y)=>x+y,0)/a.length,median:a=>{const s=a.slice().sort((x,y)=>x-y);return s[Math.floor(s.length/2)];},std:a=>{const m=a.reduce((x,y)=>x+y,0)/a.length;return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/(a.length-1));},
+        corr:(x,y)=>{const mx=H.mean(x),my=H.mean(y);let s=0,a=0,b=0;x.forEach((v,i)=>{s+=(v-mx)*(y[i]-my);a+=(v-mx)**2;b+=(y[i]-my)**2;});return s/Math.sqrt(a*b);},
+        groupBy:(r,c)=>{const g={};r.forEach(x=>{(g[String(x[c])]=g[String(x[c])]||[]).push(x);});return g;},
+        show:(title,arr)=>{arr=Array.isArray(arr)?arr:[];const cols=[...new Set(arr.slice(0,50).flatMap(x=>Object.keys(x||{})))];return store(String(title||"Result"),cols,arr.slice(0,5000).map(x=>({...x}))).id;}};
+      throw new Error("Advanced code execution is disabled for safety. Use the built-in analysis tools instead.");})];
+  return groupTools(base.concat(extraTools(T,filt,srt)),GROUPS_T);
+}
+const CSPEC='{"type":"bar|line|pie|hist|scatter","title":"...","from":"stored result id, or omit to chart the file","x":"column","y":"column or null","agg":"count|sum|mean (for an aggregated result use sum with y)"}';
+function rules(){return"You are a senior data analyst inside a file-analysis website. The user's file is loaded in their browser and you can reach ALL of its data only through the tools provided. Never guess, estimate or invent values: for anything about specific rows, counts, filters, sorting, lookups, groups, statistics or calculations, call a tool. "+
+  "You have only about five tool rounds in total, so plan first, call several tools in the same round when they are independent, and prefer ONE run_code call for multi-step calculations. If a tool returns an error, read the message and fix the call. Tool results are previews; the full table is stored under its id. "+
+  (S.tables.length?(S.tables.length>1?"Datasets loaded:\n"+S.tables.map(t=>t.id+" = \""+t.label+"\" ("+t.rows.length+" rows; columns: "+t.cols.join(", ")+")").join("\n")+"\nTools default to the active sheet; pass dataset to use another. ":"")+"The active sheet is \""+tbl().label+"\" with "+tbl().rows.length+" rows. Profile of it: "+cut(S.P):"The file is a text document of "+S.text.length+" characters. Beginning: "+S.text.slice(0,1500))+
+  "\nTools: rows, aggregate, stats, data_ops, run_code, pin_to_dashboard (each has its own instructions). Clean/join results are stored as new datasets the user can download or adopt. Write for a student: lead with the key finding, use short paragraphs, and use lines starting with "- " for lists. When finished, reply with ONLY this JSON: {\"answer\":\"clear plain-text answer with counts and key numbers, no markdown\",\"show\":[\"ids of stored results to display as tables, e.g. r1\"],\"chart\":null or "+CSPEC+"}. Tables listed in \"show\" are displayed exactly by the page, so do not repeat their rows in the answer. If something truly cannot be done, say so plainly.";}
+function sampleRows(){const t=tbl();if(!t)return"";const n=t.rows.length,pick=n<=120?t.rows:[...t.rows.slice(0,80),...t.rows.slice(-40)];return csvOf(t.cols,pick).slice(0,24000);}
+function fallbackRules(){return"You are a senior data analyst inside a file-analysis website. Tools are not available in this view, so you cannot run calculations: answer ONLY from the profile and the sample below, and say clearly when an answer would need the full data. "+
+  (S.tables.length?"Active sheet \""+tbl().label+"\" has "+tbl().rows.length+" rows. Profile (computed from every row): "+cut(S.P)+"\nSample rows (first 80 and last 40"+(tbl().rows.length>120?"":", i.e. all rows")+") as CSV:\n"+sampleRows():"Document text:\n"+S.text.slice(0,20000))+
+  "\nWrite for a student: lead with the key finding, short paragraphs, lines starting with "- " for lists. Reply with ONLY this JSON: {\"answer\":\"plain text, no markdown\",\"table\":null or {\"title\":\"...\",\"columns\":[...],\"rows\":[[...]]},\"chart\":null or "+CSPEC+"}. When the user asks to see rows, put them in \"table\", copied exactly from the sample. A chart may only use exact column names of the file (the page draws it from every row).";}
+const scrollFeed=()=>{const f=$("#aifeed");if(f)f.scrollTo({top:f.scrollHeight,behavior:"smooth"});};
+function openAI(q){if(!S||!sample)return;$("#ai").hidden=false;$("#aif").textContent=" · "+S.name;paintAI();$("#aq").focus();if(q)ask2(q);}
+function closeAI(){if(ctl)ctl.abort();$("#ai").hidden=true;achart.forEach(c=>c.destroy());achart=[];}
+function setBusy(b){$("#asend").disabled=b;$("#astop").hidden=!b;$("#aq").disabled=b;}
+function paintEntry(wrap,e){wrap.append(el("div","q",e.q));const c=el("div","acard");if(e.notice)c.append(el("small","sm","ℹ "+e.notice));if(e.a)c.append(fmtAnswer(e.a));
+  e.show.forEach(id=>c.append(resultView(id)));if(e.chart){const h=el("div","ch");c.append(h);drawChart(h,e.chart,achart);c.append(btn("📌 Pin chart to dashboard","ghost",()=>{S.dash.push({type:"chart",title:e.chart.title,spec:e.chart});note("Pinned to dashboard");}));}
+  if(e.steps&&e.steps.length){const d=el("details","st"),s=el("summary",null,"How this was worked out ("+e.steps.length+" step"+(e.steps.length>1?"s":"")+")"),b=el("div","steps");e.steps.forEach(x=>b.append(el("div",null,"⚙ "+x)));d.append(s,b);c.append(d);}if(e.diag&&e.diag.length){const d=el("details","st"),sm=el("summary",null,"Technical details"),b=el("div","steps");e.diag.forEach(x=>b.append(el("div",null,x)));d.append(sm,b);c.append(d);}wrap.append(c);}
+function paintAI(){achart.forEach(c=>c.destroy());achart=[];const f=$("#aifeed");f.textContent="";const w=el("div","aiw");f.append(w);
+  if(!S.chat.length){const e=el("div","empty-s");e.append(el("h2",null,"Ask anything about your file"),el("p","sm","Show or find rows, filter, sort, count, group, calculate and draw charts. Answers are computed on your full file, not guessed."));
+    const sg=el("div","sug"),t=S.tables.length?tbl():null,P=S.P,nc=P&&P.columns.find(c=>c.type==="number"),tc=P&&P.columns.find(c=>c.type==="text"&&c.unique<=20);
+    const list=S.tables.length?["Show the last 5 rows","Clean this data and give me the cleaned file",nc?"Top 10 rows by "+nc.name:"Show 5 rows from the middle",nc&&tc?"Average "+nc.name+" by "+tc.name+" as a bar chart":"Show a summary of every column",S.tables.length>1?"Compare these two files":nc&&tc?"Is "+nc.name+" significantly different between groups of "+tc.name+"?":"Find unusual rows",nc?"Forecast "+nc.name+" for the next 6 periods":"Build me a dashboard"]:["List every date or deadline mentioned","Who or what is mentioned most?","Extract the key numbers"];
+    list.concat((S.R&&S.R.followups||[]).slice(0,1)).forEach(x=>sg.append(btn(x,"",()=>ask2(x))));e.append(sg);w.append(e);}
+  S.chat.forEach(e=>paintEntry(w,e));f.scrollTop=f.scrollHeight;}
+const LISTY=/\b(show|list|display|table|rows?|records?|which|top|bottom|last|first|find|clean|join|compare|file|give)\b/i;
+const lite=t=>({name:t.name,description:String(t.description).slice(0,600),inputSchema:{type:"object",properties:Object.fromEntries(Object.entries((t.inputSchema&&t.inputSchema.properties)||{}).map(([k,v])=>[k,{type:Array.isArray(v.type)?"string":(v.type||"string")}]))},execute:t.execute});
+function quick(q){const t=tbl(),n=t.rows.length,m=q.toLowerCase();if(/\b(by|highest|lowest|sort|order|where|below|above|less|more|greater|missing|average|mean|count)\b/.test(m))return null;let s,c,x;
+  if(x=m.match(/\b(?:last|bottom|final|end)\s+(\d{1,4})\s+(?:rows?|records?|entries|lines)\b/)){c=Math.min(+x[1],500);s=Math.max(0,n-c);}
+  else if(x=m.match(/\b(?:first|top|head|starting)\s+(\d{1,4})\s+(?:rows?|records?|entries|lines)\b/)){c=Math.min(+x[1],500);s=0;}
+  else if(x=m.match(/\brows?\s+(\d{1,6})\s*(?:to|-|through|until)\s*(\d{1,6})\b/)){s=Math.max(0,+x[1]-1);c=Math.min(Math.max(+x[2]-s,1),500);}
+  else return null;
+  const rows=t.rows.slice(s,s+c).map((r,i)=>({"#":s+i+1,...r})),res=store("Rows "+(s+1)+" to "+(s+rows.length)+" of "+n.toLocaleString(),["#",...t.cols],rows);
+  return{q,a:"Here are rows "+(s+1)+" to "+(s+rows.length)+" of "+n.toLocaleString()+".",notice:"",diag:[],show:[res.id],chart:null,steps:["Read rows "+(s+1)+" to "+(s+rows.length)+" directly from your file"]};}
+function quickMarks(q){
+  if(!S||!S.tables.length||/\b(chart|graph|plot|visuali[sz]e|visuali[sz]ation|pie|histogram|scatter|dashboard)\b/i.test(q))return null;
+  const t=tbl(),P=S.P||profile(t),numeric=(P.columns||[]).filter(c=>c.type==="number").map(c=>c.name),nameCol=(P.columns||[]).find(c=>c.type==="text"&&c.unique>1&&c.unique<=t.rows.length)?.name;
+  if(numeric.length<2||!nameCol)return null;
+  const norm=q.toLowerCase(),valid=r=>numeric.map(c=>toNum(r[c])).filter(v=>v!==null),sum=r=>valid(r).reduce((a,b)=>a+b,0),avg=c=>{const a=t.rows.map(r=>toNum(r[c])).filter(v=>v!==null);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;};
+  const subjectStats=()=>numeric.map(c=>{const vals=t.rows.map(r=>({name:r[nameCol],value:toNum(r[c])})).filter(x=>x.value!==null);const top=vals.reduce((a,b)=>!a||b.value>a.value?b:a,null),low=vals.reduce((a,b)=>!a||b.value<a.value?b:a,null);return{Subject:c,Average:+avg(c).toFixed(2),Highest_Student:top?.name??"",Highest_Marks:top?.value??null,Lowest_Student:low?.name??"",Lowest_Marks:low?.value??null};});
+  if(/\b(average|mean|avg)\b/.test(norm)&&/\b(subject|each|every|per)\b/.test(norm)){
+    const rows=numeric.map(c=>({Subject:c,Average_Marks:+avg(c).toFixed(2),Students_With_Marks:t.rows.filter(r=>toNum(r[c])!==null).length}));const r=store("Average marks by subject",Object.keys(rows[0]),rows);return{q,a:"Calculated average marks from every valid value in each subject column.",notice:"Computed locally from the full dataset.",diag:[],show:[r.id],chart:null,steps:["Read all rows in the active dataset","Computed each subject average using numeric values only"]};
+  }
+  if(/\b(highest|lowest)\b/.test(norm)&&/\b(subject|each|every|marks)\b/.test(norm)){
+    const rows=subjectStats();const r=store("Subject performance",Object.keys(rows[0]),rows);return{q,a:"Here are the average, highest score and lowest score for each subject.",notice:"Computed locally from the full dataset.",diag:[],show:[r.id],chart:null,steps:["Computed subject statistics from all rows"]};
+  }
+  if(/\b(below|under|less than|fewer than|fail|failing)\b/.test(norm)){
+    const m=norm.match(/\b(?:below|under|less than|fewer than)\s+(\d+(?:\.\d+)?)/),threshold=m?+m[1]:40;
+    const rows=t.rows.filter(r=>numeric.some(c=>{const v=toNum(r[c]);return v!==null&&v<threshold;})).map(r=>({...r,Subjects_Below_Threshold:numeric.filter(c=>{const v=toNum(r[c]);return v!==null&&v<threshold;}).join(", ")}));
+    const r=store("Students with marks below "+threshold,[...t.cols,"Subjects_Below_Threshold"],rows);return{q,a:rows.length?rows.length+" student(s) have at least one subject mark below "+threshold+".":"No students have a subject mark below "+threshold+".",notice:"Checked every numeric subject column across all rows.",diag:[],show:[r.id],chart:null,steps:["Checked each student's numeric subject marks","Used threshold "+threshold]};
+  }
+  if(/\b(subject topper|topper in each subject|highest scorer in each subject)\b/.test(norm)){
+    const rows=subjectStats().map(x=>({Subject:x.Subject,Top_Student:x.Highest_Student,Marks:x.Highest_Marks}));const r=store("Topper by subject",Object.keys(rows[0]),rows);return{q,a:"Identified the highest-scoring student in each subject.",notice:"Computed locally from the full dataset.",diag:[],show:[r.id],chart:null,steps:["Compared all valid marks within each subject"]};
+  }
+  if(/\b(percentage|percentages|percent)\b/.test(norm)||(/\b(total marks|total score|overall total|rank|ranking|topper|highest scorer|top students)\b/.test(norm))){
+    const rows=t.rows.map(r=>{const vals=valid(r),total=vals.reduce((a,b)=>a+b,0);return{...r,Total_Marks:+total.toFixed(2),Percentage:vals.length?+(total/(vals.length*100)*100).toFixed(2):null};}).sort((a,b)=>b.Total_Marks-a.Total_Marks).map((r,i)=>({...r,Rank:i+1}));
+    const r=store("Student totals and ranking",[...t.cols,"Total_Marks","Percentage","Rank"],rows);const top=rows[0];let a="Calculated total marks and ranking for "+rows.length+" students.";if(/\b(topper|highest scorer)\b/.test(norm)&&top)a="Top student by total marks: "+top[nameCol]+" with "+top.Total_Marks+" marks (rank 1).";if(/\bpercentage\b/.test(norm))a+=" Percentage assumes each numeric subject is out of 100.";
+    return{q,a,notice:"Computed locally from the full dataset; percentage assumes 100 marks per numeric subject.",diag:[],show:[r.id],chart:null,steps:["Summed valid numeric subject marks for every student","Sorted totals from highest to lowest","Calculated percentage assuming each subject is out of 100"]};
+  }
+  return null;
+}
+function fmtAnswer(t){const box=el("div","ans"),B=/^\s*([-•*]|\d+[.)])\s+/;String(t||"").replace(/\*\*/g,"").split(/\n{2,}/).forEach(par=>{const lines=par.split("\n").filter(x=>x.trim());
+  if(lines.length&&lines.every(l=>B.test(l))){const ul=el(/^\s*\d+[.)]/.test(lines[0])?"ol":"ul");lines.forEach(l=>ul.append(el("li",null,l.replace(B,""))));box.append(ul);}else lines.forEach(l=>box.append(el("p",null,l.trim())));});return box;}
+function chartIntent(q){
+  if(!S || !S.tables.length) return null;
+  const text=q.toLowerCase();
+  if(!/\b(chart|graph|plot|visuali[sz]e|visuali[sz]ation|pie|bar chart|line chart|histogram|scatter plot|dashboard)\b/.test(text)) return null;
+  const t=tbl(), cols=t.cols, prof=S.P||profile(t);
+  const norm=x=>String(x).toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+  const findCol=(phrase)=>cols.find(c=>norm(c)===norm(phrase))||cols.find(c=>norm(c).includes(norm(phrase))||norm(phrase).includes(norm(c)));
+  let type=/\b(pie|donut|doughnut)\b/.test(text)?"pie":/\b(scatter|correlation)\b/.test(text)?"scatter":/\b(histogram|distribution)\b/.test(text)?"hist":/\b(line|trend|over time|timeline)\b/.test(text)?"line":"bar";
+  const requested=cols.filter(c=>text.includes(norm(c)));
+  const numeric=(prof.columns||[]).filter(c=>c.type==="number").map(c=>c.name);
+  const categorical=(prof.columns||[]).filter(c=>c.type==="text"&&c.unique>1&&c.unique<=80).map(c=>c.name);
+  const subjectSummary=/\b(per subject|by subject|each subject|subject averages|average marks per subject|average of each subject|total marks per subject|marks by subject)\b/.test(text);
+  if(subjectSummary&&numeric.length>=2){
+    const agg=/\b(total|sum)\b/.test(text)?"sum":"mean";
+    return{type,title:(agg==="sum"?"Total marks by subject":"Average marks by subject"),x:numeric[0],y:null,ys:numeric,mode:"column-summary",agg};
+  }
+  let x=null,y=null;
+  // For explicit "by <column>" use that column as the category axis.
+  const byMatch=text.match(/\bby\s+([a-z0-9 _-]+?)(?:\s+(?:as|with|using|for|and|versus|vs)\b|$)/i);
+  if(byMatch) x=findCol(byMatch[1].trim().replace(/[?.!,]+$/,""));
+  if(!x && requested.length) x=requested.find(c=>categorical.includes(c))||requested[0];
+  if(!x) x=categorical[0]||numeric[0]||cols[0];
+  y=requested.find(c=>c!==x&&numeric.includes(c))||numeric.find(c=>c!==x)||null;
+  if(type==="hist"){x=requested.find(c=>numeric.includes(c))||numeric[0]||x;y=null;}
+  if(type==="scatter"){
+    const pair=requested.filter(c=>numeric.includes(c));x=pair[0]||numeric[0]||x;y=pair[1]||numeric.find(c=>c!==x)||null;
+    if(!y) type="bar";
+  }
+  if((type==="pie"||type==="bar"||type==="line")&&numeric.includes(x)&&categorical.length){
+    // Numeric request alone: show its distribution, rather than treating every value as a category.
+    if(type==="pie") x=categorical[0];
+    else if(!requested.some(c=>categorical.includes(c))) {type="hist";y=null;}
+  }
+  if(!x) return null;
+  let agg=/\b(average|mean|avg)\b/.test(text)?"mean":/\b(sum|total|revenue|sales)\b/.test(text)?"sum":"count";
+  let ys=[];
+  const multiRequest=/\b(compare|comparing|comparison|across|each student|per student|all subjects|every subject|multiple subjects)\b/.test(text);
+  if(multiRequest&&["bar","line"].includes(type)){
+    ys=requested.filter(c=>numeric.includes(c)&&c!==x);
+    if(ys.length<2&&/(subject|marks|scores|students)/.test(text))ys=numeric.filter(c=>c!==x);
+    if(ys.length>=2){y=null;if(agg==="count")agg="mean";}else ys=[];
+  }
+  const title=ys.length>=2?"Compare "+ys.join(", ")+" by "+x:(type==="hist"?"Distribution of ":type==="pie"?"Breakdown by ":type==="line"?"Trend of ":type==="scatter"?"Relationship between ":"Chart of ")+(y?(agg==="count"?"count of ":agg+" of ")+y+" by "+x:x);
+  return {type,title,x,y:y||null,ys:ys.length>=2?ys:undefined,agg};
+}
+async function ask2(q){
+  q=(q||"").trim();if(!q||ctl||!S)return;
+  if(S.tables.length){
+    const direct=quick(q);
+    if(direct){S.chat.push(direct);paintAI();return;}
+    const marks=quickMarks(q);
+    if(marks){S.chat.push(marks);paintAI();return;}
+    const spec=chartIntent(q);
+    if(spec){
+      const built=build(chartTable(spec),spec);
+      if(built){S.chat.push({q,a:"Created a "+({bar:"bar chart",line:"line chart",pie:"pie chart",hist:"histogram",scatter:"scatter plot"}[spec.type]||"chart")+" from the uploaded data using "+spec.x+(spec.y?" and "+spec.y:"")+".",notice:"Chart generated from the loaded dataset.",diag:[],show:[],chart:spec,steps:["Selected chart type from your request", "Used exact dataset column names", "Computed chart values from the loaded rows"]});paintAI();return;}
+      S.chat.push({q,a:"I recognized the chart request, but could not build that chart from the selected columns. Try naming the category and numeric columns, for example: ‘Make a bar chart of average Revenue by Region.’",notice:"Chart needs compatible columns.",diag:[],show:[],chart:null,steps:[]});paintAI();return;
+    }
+  }
+  const f=$("#aifeed");let w=f.querySelector(".aiw");if(!w){w=el("div","aiw");f.append(w);}if(!S.chat.length)w.textContent="";
+  w.append(el("div","q",q));const card=el("div","acard"),th=el("div","think");th.append(el("div","spin"),el("span",null,"Thinking…"));card.append(th);w.append(card);scrollFeed();
+  ctl=new AbortController();setBusy(true);$("#aq").value="";
+  const context=S.tables.length
+    ? "Active file: "+S.name+"\nFull-file statistical profile (computed locally from all rows): "+JSON.stringify(S.P||profile(tbl())).slice(0,14000)+"\nColumn names: "+JSON.stringify(tbl().cols)+"\nRepresentative sample rows (first 80 and last 40; not necessarily every row):\n"+sampleRows().slice(0,24000)
+    : "Active document: "+S.name+"\nDocument text excerpt: "+String(S.text||"").slice(0,18000);
+  const prompt="You are Insightly, a careful data-analysis assistant. Answer the user's question directly, clearly, and in plain language. Use the full-file statistical profile for totals and summary statistics when available. The supplied rows are only a representative sample unless explicitly stated otherwise. Never invent figures, claim to have performed an operation that was not performed, or infer exact whole-file results from the sample. If a request needs a computation that you cannot perform from the supplied information, state that limitation and offer the closest reliable answer. Keep the answer focused and use bullets when useful.\nUser question: "+q;
+  try{
+    // The previous version sent every request to Gemini as plain text. This agent loop
+    // lets the model select and execute a real local data tool before writing its answer.
+    let answer="", shown=[], chart=null, steps=[];
+    const toolSet=makeTools().filter(t=>t.name!=="run_code"); // Never execute model-generated JS with browser privileges.
+    const toolInfo=toolSet.map(t=>({name:t.name,description:t.description,parameters:t.inputSchema}));
+    const planner="You are Insightly's command router. Choose exactly ONE tool when the request needs reading rows, searching, filtering, sorting, aggregating, statistics, cleaning, joining, comparing, forecasting, or document lookup. Use only the listed tool names and exact column names. Never invent results. If the request is explanatory and needs no operation, choose tool=none. Return ONLY JSON: {\"tool\":\"tool name or none\",\"args\":{},\"reason\":\"brief\"}.\nAVAILABLE TOOLS:\n"+JSON.stringify(toolInfo)+"\nUSER REQUEST: "+q;
+    const planRaw=await geminiRequest(planner,context,true);
+    if(ctl&&ctl.signal.aborted)throw new Error("Request stopped.");
+    let plan;try{plan=JSON.parse(String(planRaw).trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,""));}catch{plan={tool:"none",args:{}};}
+    let result=null;
+    if(plan&&plan.tool&&plan.tool!=="none"){
+      const tool=toolSet.find(t=>t.name===plan.tool);
+      if(!tool)throw new Error("The AI selected an unavailable operation. Please rephrase the command.");
+      const args=plan.args&&typeof plan.args==="object"?plan.args:{};
+      const statusLine=el("p","sm","Executing: "+tool.name.replaceAll("_"," ")+"…");card.textContent="";card.append(statusLine);
+      result=await tool.execute(args);
+      if(ctl&&ctl.signal.aborted)throw new Error("Request stopped.");
+      steps.push("Executed "+tool.name.replaceAll("_"," ")+" against the loaded data");
+      if(result&&typeof result.id==="string"&&S.results[result.id])shown.push(result.id);
+      if(result&&result.ok&&result.dashboard_items)steps.push("Added item to the dashboard");
+    }
+    const synthesis="Answer the user's request using the operation result below. Do not claim anything the result does not support. Be direct and concise. If a stored table id exists, put it in show. If user asked for a chart and a chart can be built, provide a chart spec with exact column names and type bar, line, pie, hist, or scatter. Return ONLY JSON: {\"answer\":\"plain text\",\"show\":[\"stored result ids\"],\"chart\":null or {\"type\":\"bar|line|pie|hist|scatter\",\"title\":\"...\",\"x\":\"exact column\",\"y\":null,\"agg\":\"count|sum|mean\"}}\nUSER REQUEST: "+q+"\nOPERATION RESULT: "+JSON.stringify(result).slice(0,16000);
+    const finalRaw=await geminiRequest(synthesis,context,true);
+    if(ctl&&ctl.signal.aborted)throw new Error("Request stopped.");
+    let finalObj;try{finalObj=JSON.parse(String(finalRaw).trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,""));}catch{finalObj={answer:finalRaw,show:[],chart:null};}
+    answer=typeof finalObj.answer==="string"?finalObj.answer:"Completed the requested operation.";
+    if(Array.isArray(finalObj.show))shown=[...new Set([...shown,...finalObj.show.filter(x=>typeof x==="string"&&S.results[x])])];
+    if(finalObj.chart&&S.tables.length){const spec=finalObj.chart;if(Array.isArray(spec.ys))spec.ys=spec.ys.filter(c=>tbl().cols.includes(c));if(["bar","line","pie","hist","scatter"].includes(spec.type)&&tbl().cols.includes(spec.x)&&(!spec.y||tbl().cols.includes(spec.y))&&(!spec.ys||spec.ys.length>=2)&&build(chartTable(spec),spec))chart=spec;}
+    S.chat.push({q,a:answer,notice:result?"The request was processed using the dataset tools.":"",diag:[],show:shown,chart,steps});paintAI();
+  }
+  catch(e){card.textContent="";card.append(el("p","body",e.message||"The AI request failed. Please try again."));}
+  finally{ctl=null;setBusy(false);if(!$("#ai").hidden)$("#aq").focus();}
+}
+$("#aform").onsubmit=e=>{e.preventDefault();ask2($("#aq").value);};$("#astop").onclick=()=>{if(ctl)ctl.abort();};$("#aix").onclick=closeAI;$("#sbar").onclick=()=>openAI();
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#dash").hidden)closeDash();else if(e.key==="Escape"&&!$("#ai").hidden)closeAI();else if(e.key==="/"&&S&&!$("#work").hidden&&$("#ai").hidden&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();openAI();}});
+function reportText(){const A=S.R;return"# Insights report: "+S.name+"\n\n## Executive Summary\n"+A.summary+"\n\n## Key Takeaways\n"+(A.insights||[]).map(i=>"- **"+i.title+"**: "+i.detail).join("\n")+((A.actions||[]).length?"\n\n## Action Items\n"+A.actions.map(x=>"- [ ] "+x).join("\n"):"")+((A.quality||[]).filter(Boolean).length?"\n\n## Data quality\n"+A.quality.map(x=>"- "+x).join("\n"):"")+"\n";}
+async function copyReport(){try{await navigator.clipboard.writeText(reportText());status("Report copied",100);setTimeout(()=>status(""),1500);}catch(e){fail("Copy isn’t available here. Use Download instead.");}}
+async function saveReport(){try{if(!dl)throw 0;await dl.save({filename:"insights-report.md",data:reportText()});}catch(e){fail("Download isn’t available here. Use Copy instead.");}}
+</script></body></html>
